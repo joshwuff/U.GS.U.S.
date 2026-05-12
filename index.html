@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>U.GS.U.C. - Utilization Goal Calculator</title>
+    <title>U.GS.U.C. - Utilization Tracker</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -31,11 +31,14 @@
             box-sizing: border-box;
         }
 
+        /* Notice we keep the cursor default so the secret isn't obvious */
         .logo {
             display: block;
             margin: 0 auto 30px;
             max-width: 250px;
             height: auto;
+            cursor: default; 
+            user-select: none;
         }
 
         h1 {
@@ -167,6 +170,7 @@
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
+            margin-bottom: 20px;
         }
 
         .dashboard-header {
@@ -234,33 +238,51 @@
             transition: width 0.5s ease-in-out;
         }
 
+        /* --- NEW ADMIN PANEL STYLES --- */
+        .admin-panel {
+            width: 100%;
+            max-width: 600px;
+            background-color: #ffebee;
+            border: 2px solid #ef5350;
+            padding: 20px;
+            border-radius: 8px;
+            box-sizing: border-box;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .admin-panel h3 {
+            margin-top: 0;
+            color: #c62828;
+        }
+
+        .reset-btn-admin {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: auto;
+        }
+        
+        .reset-btn-admin:hover {
+            background-color: #b71c1c;
+        }
+
         .footer-note {
-            margin-top: 20px;
             font-size: 12px;
             color: #888888;
             text-align: center;
-        }
-
-        .reset-btn {
-            background: none;
-            border: none;
-            color: #d32f2f;
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 12px;
-            margin-top: 15px;
-            padding: 5px;
-        }
-        
-        .reset-btn:hover {
-            color: #b71c1c;
+            margin-bottom: 30px;
         }
     </style>
 </head>
 <body>
 
     <div class="calculator-container">
-        <img src="U.GS.U.C-logo.png" alt="Unofficial Geek Squad U.GS.U.C. Logo" class="logo">
+        <img src="U.GS.U.C-logo.png" id="secretLogo" alt="Unofficial Geek Squad U.GS.U.C. Logo" class="logo">
 
         <h1>U.GS.U.C. - Utilization Tracker</h1>
 
@@ -325,12 +347,17 @@
         </ul>
     </div>
 
-    <button id="resetDataBtn" class="reset-btn">Reset Data for Current Week</button>
+    <div id="adminPanel" class="admin-panel" style="display: none;">
+        <h3>🛡️ Precinct Administrator Override</h3>
+        <p style="font-size: 14px; color: #555; margin-bottom: 20px;">
+            Warning: Wiping the database deletes all goals and progress for the current week. This cannot be undone.
+        </p>
+        <button id="resetDataBtn" class="reset-btn-admin">Wipe Current Week Data</button>
+    </div>
 
-    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v2.0 (Target vs Progress)</div>
+    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v3.0 (Secure)</div>
 
     <script>
-        // URL is now corrected with the missing 'a'
         const _supabase = supabase.createClient(
             'https://yxeozqztofvpyadxveyr.supabase.co',
             'sb_publishable_3WRcMc4zjv-N-9oZry-SbA_MmRRKv1b'
@@ -348,6 +375,40 @@
             const resultOutput = document.getElementById('resultOutput');
             const agentListElement = document.getElementById('agentList');
             const weekLabel = document.getElementById('weekLabel');
+            
+            // Elements for the Easter Egg
+            const secretLogo = document.getElementById('secretLogo');
+            const adminPanel = document.getElementById('adminPanel');
+
+            // --- EASTER EGG LOGIC ---
+            let logoClickCount = 0;
+            let logoClickTimer;
+
+            secretLogo.addEventListener('click', () => {
+                logoClickCount++;
+                
+                // Reset the count if they take longer than 2 seconds between clicks
+                clearTimeout(logoClickTimer);
+                logoClickTimer = setTimeout(() => {
+                    logoClickCount = 0;
+                }, 2000);
+
+                // When they hit 5 fast clicks
+                if (logoClickCount === 5) {
+                    logoClickCount = 0; // reset for next time
+                    
+                    // Open the secret text box
+                    const authCode = prompt("SECURITY OVERRIDE:\nEnter authorization code:");
+                    
+                    if (authCode === "Agents4ssembl3") {
+                        adminPanel.style.display = "block"; // Reveal the panel
+                        // Scroll down to make sure they see it
+                        window.scrollTo(0, document.body.scrollHeight);
+                    } else if (authCode !== null) {
+                        alert("Access Denied.");
+                    }
+                }
+            });
 
             // --- UI TOGGLE LOGIC ---
             actionSelect.addEventListener('change', () => {
@@ -388,7 +449,6 @@
                     return;
                 }
 
-                // Sort the raw logs into Goals and Progress per agent
                 const precinctData = {};
                 
                 data.forEach(log => {
@@ -474,14 +534,11 @@
 
                 let finalMinutes = 0;
                 if (action === 'GOAL') {
-                    // Calculate target from scheduled hours
                     finalMinutes = Math.round((parseFloat(numVal) * 60) * 0.81);
                 } else {
-                    // Directly log the generated minutes
                     finalMinutes = parseInt(numVal);
                 }
 
-                // Append the action type to the name
                 const dbAgentName = `${selectedAgent}|${action}`;
 
                 const { error } = await _supabase
@@ -519,23 +576,30 @@
 
             // --- MANUAL RESET ---
             async function manualReset() {
+                // Double confirmation to be extra safe
                 if(confirm("Are you sure you want to clear ALL cloud data for this week? This deletes everyone's logs and cannot be undone!")) {
-                    resultOutput.textContent = "Deleting...";
-                    
-                    const { error } = await _supabase
-                        .from('utilization_logs')
-                        .delete()
-                        .eq('week_of', currentWeekString);
+                    if(confirm("FINAL WARNING: Wiping the database now.")) {
+                        resultOutput.textContent = "Deleting...";
+                        
+                        const { error } = await _supabase
+                            .from('utilization_logs')
+                            .delete()
+                            .eq('week_of', currentWeekString);
 
-                    if (error) {
-                        resultOutput.textContent = "Failed to delete data.";
-                        resultOutput.style.color = "#d32f2f";
-                        return;
+                        if (error) {
+                            resultOutput.textContent = "Failed to delete data.";
+                            resultOutput.style.color = "#d32f2f";
+                            return;
+                        }
+
+                        resultOutput.textContent = "Cloud data cleared for the week.";
+                        resultOutput.style.color = "#666666";
+                        
+                        // Hide the panel again after wiping
+                        adminPanel.style.display = "none";
+                        
+                        fetchDashboardData();
                     }
-
-                    resultOutput.textContent = "Cloud data cleared for the week.";
-                    resultOutput.style.color = "#666666";
-                    fetchDashboardData();
                 }
             }
 
