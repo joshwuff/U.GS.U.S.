@@ -218,6 +218,7 @@
             padding: 8px;
             border-radius: 6px;
             border: 1px solid #eee;
+            position: relative;
         }
 
         .week-label {
@@ -242,24 +243,6 @@
         .nav-btn:hover {
             color: #e66a00;
             background: none;
-        }
-
-        /* The hidden overlay trick for the calendar button */
-        .calendar-wrapper {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .calendar-input-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
         }
 
         .agent-list {
@@ -486,10 +469,8 @@
             <div class="week-controls">
                 <button id="prevWeekBtn" class="nav-btn" title="Previous Week">◄</button>
                 <span class="week-label" id="weekLabel">Loading week...</span>
-                <div class="calendar-wrapper">
-                    <button class="nav-btn" style="pointer-events: none;" title="Select Week">📅</button>
-                    <input type="date" id="weekPicker" class="calendar-input-overlay">
-                </div>
+                <button id="calendarBtn" class="nav-btn" title="Select Week">📅</button>
+                <input type="date" id="weekPicker" style="position: absolute; right: -9999px; visibility: hidden;">
                 <button id="nextWeekBtn" class="nav-btn" title="Next Week">►</button>
             </div>
         </div>
@@ -548,7 +529,7 @@
 
     <script>
         // --- APP VERSION MANAGER ---
-        const APP_VERSION = "4.7";
+        const APP_VERSION = "4.8";
 
         const _supabase = supabase.createClient(
             'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -574,6 +555,7 @@
             const weekLabel = document.getElementById('weekLabel');
             const prevWeekBtn = document.getElementById('prevWeekBtn');
             const nextWeekBtn = document.getElementById('nextWeekBtn');
+            const calendarBtn = document.getElementById('calendarBtn');
             const weekPicker = document.getElementById('weekPicker');
             
             // Easter Egg & Admin Elements
@@ -642,10 +624,19 @@
                 updateWeekUI();
             });
 
-            // Reverted to a standard date picker that snaps to Monday to bypass Firefox bugs
+            // Native cross-browser calendar trigger
+            calendarBtn.addEventListener('click', () => {
+                try {
+                    weekPicker.showPicker();
+                } catch (e) {
+                    // Fallback for older browsers
+                    weekPicker.focus();
+                }
+            });
+
+            // Parse the date manually to bypass timezone issues
             weekPicker.addEventListener('change', (e) => {
                 if (e.target.value) {
-                    // Split manually to avoid timezone shift issues
                     const [y, m, d] = e.target.value.split('-');
                     const pickedDate = new Date(y, m - 1, d);
                     selectedMonday = getMonday(pickedDate);
