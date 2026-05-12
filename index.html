@@ -170,14 +170,14 @@
 
         <div class="input-group">
             <label for="hoursWorked" class="input-label">Hours Worked</label>
-            <input type="number" id="hoursWorked" placeholder="e.g., 8">
+            <input type="number" id="hoursWorked" placeholder="e.g., 8" autocomplete="off">
         </div>
 
         <p class="formula-text">Goal = (hours x 60) x 0.81</p>
 
         <div class="fake-recaptcha">
             <label class="fake-recaptcha-left" for="robotCheck">
-                <input type="checkbox" id="robotCheck">
+                <input type="checkbox" id="robotCheck" autocomplete="off">
                 <span>I'm not a robot</span>
             </label>
             <div class="fake-recaptcha-right">
@@ -203,11 +203,18 @@
             const robotCheck = document.getElementById('robotCheck');
             const resultOutput = document.getElementById('resultOutput');
 
+            // Force clear the inputs and checkbox on page load/refresh
+            hoursInput.value = '';
+            robotCheck.checked = false;
+            
+            // Reset the text just in case the browser cached an old error state
+            resultOutput.textContent = 'Goal for 8 hours: 389 minutes';
+            resultOutput.style.color = '#666666';
+
             function calculateGoal() {
-                // First, check if the fake reCAPTCHA is ticked
                 if (!robotCheck.checked) {
                     resultOutput.textContent = "Security check: Please verify you are not a robot!";
-                    resultOutput.style.color = "#d32f2f"; // A nice error red
+                    resultOutput.style.color = "#d32f2f"; 
                     return;
                 }
 
