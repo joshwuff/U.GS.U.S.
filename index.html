@@ -65,7 +65,60 @@
         .formula-text {
             font-size: 14px;
             color: #333333;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+        }
+
+        /* Fake reCAPTCHA Styling */
+        .fake-recaptcha {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fafafa;
+            border: 1px solid #d3d3d3;
+            border-radius: 3px;
+            padding: 10px 15px;
+            margin: 0 auto 20px auto;
+            width: 80%;
+            box-sizing: border-box;
+            box-shadow: 0px 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .fake-recaptcha-left {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .fake-recaptcha-left input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .fake-recaptcha-left span {
+            font-family: "Roboto", Arial, sans-serif;
+            font-size: 14px;
+            color: #555555;
+        }
+
+        .fake-recaptcha-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: "Roboto", Arial, sans-serif;
+        }
+
+        .fake-recaptcha-right .icon {
+            font-size: 20px;
+            line-height: 1;
+            color: #4a90e2;
+            margin-bottom: 2px;
+        }
+
+        .fake-recaptcha-right .text {
+            font-size: 10px;
+            color: #999999;
         }
 
         button {
@@ -122,6 +175,17 @@
 
         <p class="formula-text">Goal = (hours x 60) x 0.81</p>
 
+        <div class="fake-recaptcha">
+            <label class="fake-recaptcha-left" for="robotCheck">
+                <input type="checkbox" id="robotCheck">
+                <span>I'm not a robot</span>
+            </label>
+            <div class="fake-recaptcha-right">
+                <div class="icon">↻</div>
+                <div class="text">reCAPTCHA</div>
+            </div>
+        </div>
+
         <button id="calculateBtn">Calculate Goal</button>
 
         <div class="result-section">
@@ -136,14 +200,22 @@
         document.addEventListener('DOMContentLoaded', () => {
             const calculateBtn = document.getElementById('calculateBtn');
             const hoursInput = document.getElementById('hoursWorked');
+            const robotCheck = document.getElementById('robotCheck');
             const resultOutput = document.getElementById('resultOutput');
 
             function calculateGoal() {
+                // First, check if the fake reCAPTCHA is ticked
+                if (!robotCheck.checked) {
+                    resultOutput.textContent = "Security check: Please verify you are not a robot!";
+                    resultOutput.style.color = "#d32f2f"; // A nice error red
+                    return;
+                }
+
                 const hoursVal = hoursInput.value;
 
                 if (hoursVal === "" || isNaN(hoursVal) || hoursVal < 0) {
                     resultOutput.textContent = "Please enter a valid number of hours.";
-                    resultOutput.style.color = "red";
+                    resultOutput.style.color = "#d32f2f";
                     return;
                 }
 
