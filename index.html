@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Precinct Utilization Goal</title>
+    <style>
+        :root {
+            --gs-orange: #ff6a00;
+            --gs-black: #000000;
+            --gs-gray: #333333;
+            --bg-color: #f4f4f9;
+            --text-color: #1a1a1a;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            border-top: 5px solid var(--gs-orange);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--gs-black);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: var(--gs-gray);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--gs-orange);
+            outline: none;
+        }
+
+        button {
+            background-color: var(--gs-orange);
+            color: #ffffff;
+            border: none;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #e65c00;
+        }
+
+        #result-container {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: var(--gs-gray);
+            color: #ffffff;
+            border-radius: 8px;
+            display: none; /* Hidden until calculated */
+        }
+
+        .result-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--gs-orange);
+            margin: 10px 0;
+        }
+
+        .result-subtext {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        /* A tiny nod to the whiteboard art */
+        .footer-note {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Agent Utilization Calculator</h1>
+        
+        <div class="input-group">
+            <label for="hoursWorked">Hours Worked (This Week):</label>
+            <input type="number" id="hoursWorked" placeholder="e.g. 38.5" step="0.5" min="0">
+        </div>
+
+        <button onclick="calculateUtilization()">Calculate Goal</button>
+
+        <div id="result-container">
+            <div>Your Target:</div>
+            <div class="result-number" id="minutesResult">0</div>
+            <div>Minutes</div>
+            <div class="result-subtext" id="hoursResult"></div>
+        </div>
+    </div>
+
+    <div class="footer-note">Target: 81% (0.81) | Stay wockle :3</div>
+
+    <script>
+        function calculateUtilization() {
+            const hoursInput = document.getElementById('hoursWorked').value;
+            const resultContainer = document.getElementById('result-container');
+            const minutesResult = document.getElementById('minutesResult');
+            const hoursResult = document.getElementById('hoursResult');
+
+            // Parse the input to a float, default to 0 if empty
+            const hours = parseFloat(hoursInput) || 0;
+
+            if (hours > 0) {
+                // The formula from the whiteboard: (hours * 60) * 0.81
+                const totalMinutes = (hours * 60) * 0.81;
+                
+                // Round to the nearest whole minute for a cleaner target
+                const roundedMinutes = Math.round(totalMinutes);
+                
+                // Calculate rough hours and minutes for better visualization
+                const displayHours = Math.floor(roundedMinutes / 60);
+                const displayMinutes = roundedMinutes % 60;
+
+                // Update the DOM
+                minutesResult.innerText = roundedMinutes;
+                
+                if (displayHours > 0) {
+                    hoursResult.innerText = `(~ ${displayHours}h ${displayMinutes}m)`;
+                } else {
+                    hoursResult.innerText = '';
+                }
+
+                // Show the result block
+                resultContainer.style.display = 'block';
+            } else {
+                alert("Please enter a valid number of hours.");
+            }
+        }
+    </script>
+</body>
+</html>
