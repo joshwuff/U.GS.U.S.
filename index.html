@@ -61,7 +61,6 @@
             font-weight: bold;
         }
 
-        /* Prevent the up/down arrows in standard number inputs for a cleaner look */
         input[type="number"]::-webkit-inner-spin-button, 
         input[type="number"]::-webkit-outer-spin-button { 
             -webkit-appearance: none; 
@@ -78,6 +77,12 @@
             border: 1px solid #cccccc;
             border-radius: 4px;
             box-sizing: border-box; 
+        }
+
+        /* Gray out input when disabled */
+        input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
         }
 
         .formula-text {
@@ -170,6 +175,14 @@
             font-style: italic;
         }
 
+        .lock-warning {
+            color: #d32f2f;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: none;
+        }
+
         /* Dashboard Styling */
         .dashboard {
             width: 100%;
@@ -192,13 +205,43 @@
 
         .dashboard-header h2 {
             font-size: 20px;
+            margin: 0 0 10px 0;
+            text-align: center;
+        }
+        
+        .week-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            background: #f9f9f9;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+
+        .week-label {
+            font-size: 15px;
+            color: #333333;
+            font-weight: bold;
+            min-width: 160px;
+            text-align: center;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #f57c00;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 5px;
+            width: auto;
             margin: 0;
         }
         
-        .week-label {
-            font-size: 14px;
-            color: #666666;
-            margin-top: 5px;
+        .nav-btn:hover {
+            color: #e66a00;
+            background: none;
         }
 
         .agent-list {
@@ -363,7 +406,7 @@
 <body>
 
     <div class="calculator-container">
-        <img src="U.GS.U.S-logo.png" id="secretLogo" alt="Unofficial Geek Squad U.GS.U.S. Logo" class="logo">
+        <img src="U.GS.U.C-logo.png" id="secretLogo" alt="Unofficial Geek Squad U.GS.U.S. Logo" class="logo">
 
         <h1>U.GS.U.S. - Utilization System</h1>
 
@@ -411,6 +454,7 @@
             </div>
         </div>
 
+        <p id="lockWarning" class="lock-warning">Public inputs locked. Return to current week or use Admin Panel.</p>
         <button id="submitBtn">Submit Data</button>
 
         <div class="result-section">
@@ -421,7 +465,13 @@
     <div class="dashboard">
         <div class="dashboard-header">
             <h2>Precinct Totals</h2>
-            <span class="week-label" id="weekLabel">Loading week...</span>
+            <div class="week-controls">
+                <button id="prevWeekBtn" class="nav-btn" title="Previous Week">◄</button>
+                <span class="week-label" id="weekLabel">Loading week...</span>
+                <button id="calendarBtn" class="nav-btn" title="Select Date">📅</button>
+                <input type="date" id="weekPicker" style="opacity: 0; position: absolute; pointer-events: none;">
+                <button id="nextWeekBtn" class="nav-btn" title="Next Week">►</button>
+            </div>
         </div>
         <ul class="agent-list" id="agentList">
             <li class="agent-item" style="color:#999; text-align:center;">Connecting to database...</li>
@@ -432,7 +482,7 @@
         <span class="close-admin-btn" id="closeAdminBtn">✖</span>
         <h3>🛡️ Precinct Admin Override</h3>
         
-        <div style="text-align: left; font-size: 14px; font-weight: bold; color: #555; margin-bottom: 5px;">Edit Agent Value:</div>
+        <div style="text-align: left; font-size: 14px; font-weight: bold; color: #555; margin-bottom: 5px;">Edit Agent For Selected Week:</div>
         <div class="admin-edit-group">
             <select id="adminAgentSelect" autocomplete="off">
                 <option value="Alvan">Alvan</option>
@@ -459,9 +509,9 @@
         <hr class="admin-divider">
 
         <p style="font-size: 13px; color: #555; margin-bottom: 10px;">
-            Warning: Wiping the database deletes all goals and progress for the current week.
+            Warning: Wiping the database deletes all data for the <strong>selected week</strong>.
         </p>
-        <button id="resetDataBtn" class="admin-action-btn">Wipe Current Week Data</button>
+        <button id="resetDataBtn" class="admin-action-btn">Wipe Selected Week Data</button>
     </div>
 
     <div id="passwordModal" class="modal-overlay">
@@ -478,7 +528,7 @@
 
     <script>
         // --- APP VERSION MANAGER ---
-        const APP_VERSION = "v4.2";
+        const APP_VERSION = "v4.5";
 
         const _supabase = supabase.createClient(
             'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -497,8 +547,15 @@
             const formulaText = document.getElementById('formulaText');
             const robotCheck = document.getElementById('robotCheck');
             const resultOutput = document.getElementById('resultOutput');
+            const lockWarning = document.getElementById('lockWarning');
             const agentListElement = document.getElementById('agentList');
+            
+            // Week Controls
             const weekLabel = document.getElementById('weekLabel');
+            const prevWeekBtn = document.getElementById('prevWeekBtn');
+            const nextWeekBtn = document.getElementById('nextWeekBtn');
+            const calendarBtn = document.getElementById('calendarBtn');
+            const weekPicker = document.getElementById('weekPicker');
             
             // Easter Egg & Admin Elements
             const secretLogo = document.getElementById('secretLogo');
@@ -517,8 +574,74 @@
             const adminOverrideBtn = document.getElementById('adminOverrideBtn');
             const adminFeedback = document.getElementById('adminFeedback');
 
-            // --- INPUT SANITIZERS (NEW IN v4.2) ---
-            // This forces the input box to instantly delete decimals, letters, and minus signs
+            // --- DATE LOGIC ---
+            function getMonday(d) {
+                const date = new Date(d);
+                const day = date.getDay();
+                const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+                return new Date(date.setDate(diff));
+            }
+
+            function formatDateString(dateObj) {
+                const options = { month: 'long', day: 'numeric', year: 'numeric' };
+                return dateObj.toLocaleDateString('en-US', options);
+            }
+
+            // Track both the actual current week and the week the user is looking at
+            const actualCurrentMonday = getMonday(new Date());
+            const actualCurrentWeekString = formatDateString(actualCurrentMonday);
+            
+            let selectedMonday = new Date(actualCurrentMonday);
+            let selectedWeekString = actualCurrentWeekString;
+
+            function updateWeekUI() {
+                selectedWeekString = formatDateString(selectedMonday);
+                weekLabel.textContent = `${selectedWeekString}`;
+
+                // Lock the main public input if they navigate away from the current week
+                if (selectedWeekString !== actualCurrentWeekString) {
+                    submitBtn.disabled = true;
+                    numberInput.disabled = true;
+                    robotCheck.disabled = true;
+                    lockWarning.style.display = "block";
+                } else {
+                    submitBtn.disabled = false;
+                    numberInput.disabled = false;
+                    robotCheck.disabled = false;
+                    lockWarning.style.display = "none";
+                }
+
+                // Fetch new data for the newly selected week
+                fetchDashboardData();
+            }
+
+            // Navigation Button Listeners
+            prevWeekBtn.addEventListener('click', () => {
+                selectedMonday.setDate(selectedMonday.getDate() - 7);
+                updateWeekUI();
+            });
+
+            nextWeekBtn.addEventListener('click', () => {
+                selectedMonday.setDate(selectedMonday.getDate() + 7);
+                updateWeekUI();
+            });
+
+            // Calendar Picker Listeners
+            calendarBtn.addEventListener('click', () => {
+                weekPicker.showPicker();
+            });
+
+            weekPicker.addEventListener('change', (e) => {
+                if (e.target.value) {
+                    // Break apart the date string to prevent timezone shifting
+                    const [y, m, d] = e.target.value.split('-');
+                    const pickedDate = new Date(y, m - 1, d);
+                    selectedMonday = getMonday(pickedDate);
+                    updateWeekUI();
+                }
+            });
+
+            // --- INPUT SANITIZERS ---
             function restrictToWholeNumbers(e) {
                 e.target.value = e.target.value.replace(/[^0-9]/g, '');
             }
@@ -580,25 +703,13 @@
                 }
             });
 
-            // --- DATE LOGIC ---
-            function getMondayOfCurrentWeek() {
-                const today = new Date();
-                const day = today.getDay();
-                const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-                const monday = new Date(today.setDate(diff));
-                const options = { month: 'long', day: 'numeric', year: 'numeric' };
-                return monday.toLocaleDateString('en-US', options);
-            }
-
-            const currentWeekString = getMondayOfCurrentWeek();
-            weekLabel.textContent = `Week of ${currentWeekString}`;
-
             // --- FETCH DATA FROM SUPABASE ---
             async function fetchDashboardData() {
+                // Notice we fetch based on selectedWeekString now!
                 const { data, error } = await _supabase
                     .from('utilization_logs')
                     .select('*')
-                    .eq('week_of', currentWeekString);
+                    .eq('week_of', selectedWeekString);
 
                 if (error) {
                     agentListElement.innerHTML = '<li class="agent-item" style="color:#d32f2f; text-align:center;">Error loading database.</li>';
@@ -678,7 +789,7 @@
                 const dbAgentName = `${selectedAgent}|${action}`;
 
                 const { error } = await _supabase.from('utilization_logs').insert([
-                    { agent_name: dbAgentName, target_minutes: finalMinutes, week_of: currentWeekString }
+                    { agent_name: dbAgentName, target_minutes: finalMinutes, week_of: actualCurrentWeekString }
                 ]);
 
                 submitBtn.disabled = false;
@@ -713,12 +824,13 @@
                 adminOverrideBtn.textContent = "Updating...";
                 adminOverrideBtn.disabled = true;
 
+                // Deletes/Updates use the selectedWeekString so you can fix past weeks!
                 await _supabase.from('utilization_logs').delete()
-                    .eq('week_of', currentWeekString)
+                    .eq('week_of', selectedWeekString)
                     .eq('agent_name', dbAgentName);
 
                 const { error } = await _supabase.from('utilization_logs').insert([
-                    { agent_name: dbAgentName, target_minutes: parseInt(exactMinutes), week_of: currentWeekString }
+                    { agent_name: dbAgentName, target_minutes: parseInt(exactMinutes), week_of: selectedWeekString }
                 ]);
 
                 adminOverrideBtn.textContent = "Force Update Agent";
@@ -728,21 +840,20 @@
                     adminFeedback.textContent = "Error updating database.";
                 } else {
                     adminFeedback.style.color = "#4CAF50";
-                    adminFeedback.textContent = `Successfully updated ${targetAgent}.`;
+                    adminFeedback.textContent = `Successfully updated ${targetAgent} for ${selectedWeekString}.`;
                     adminValueInput.value = '';
                     fetchDashboardData();
                     
-                    setTimeout(() => { adminFeedback.textContent = ""; adminFeedback.style.color = "#d32f2f"; }, 3000);
+                    setTimeout(() => { adminFeedback.textContent = ""; adminFeedback.style.color = "#d32f2f"; }, 4000);
                 }
             }
 
             // --- ADMIN FULL WIPE ---
             async function manualReset() {
-                if(confirm("Are you sure you want to clear ALL cloud data for this week?")) {
+                if(confirm(`Are you sure you want to clear ALL cloud data for the week of ${selectedWeekString}?`)) {
                     if(confirm("FINAL WARNING: Wiping the database now.")) {
-                        const { error } = await _supabase.from('utilization_logs').delete().eq('week_of', currentWeekString);
+                        const { error } = await _supabase.from('utilization_logs').delete().eq('week_of', selectedWeekString);
                         if (!error) {
-                            adminPanel.style.display = "none";
                             fetchDashboardData();
                         }
                     }
@@ -750,13 +861,13 @@
             }
 
             submitBtn.addEventListener('click', submitData);
-            numberInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') submitData(); });
+            numberInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !submitBtn.disabled) submitData(); });
             
             adminOverrideBtn.addEventListener('click', forceUpdateAgent);
             resetDataBtn.addEventListener('click', manualReset);
 
             // Initial load
-            fetchDashboardData();
+            updateWeekUI();
         });
     </script>
 </body>
