@@ -537,6 +537,7 @@
                 <span class="week-label" id="weekLabel">Loading week...</span>
                 <button id="calendarBtn" class="nav-btn" title="Select Week">📅</button>
                 <button id="nextWeekBtn" class="nav-btn" title="Next Week">►</button>
+                <button id="currentWeekBtn" class="nav-btn" title="Jump to Current Week" style="margin-left: 5px;">↺</button>
             </div>
         </div>
         <ul class="agent-list" id="agentList">
@@ -609,7 +610,7 @@
     <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v<span id="appVersionDisplay"></span></div>
 
     <script>
-        const APP_VERSION = "4.10";
+        const APP_VERSION = "4.11";
 
         const _supabase = supabase.createClient(
             'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -635,6 +636,7 @@
             const prevWeekBtn = document.getElementById('prevWeekBtn');
             const nextWeekBtn = document.getElementById('nextWeekBtn');
             const calendarBtn = document.getElementById('calendarBtn');
+            const currentWeekBtn = document.getElementById('currentWeekBtn');
             
             // Custom Calendar Elements
             const calendarModal = document.getElementById('calendarModal');
@@ -709,6 +711,11 @@
 
             nextWeekBtn.addEventListener('click', () => {
                 selectedMonday.setDate(selectedMonday.getDate() + 7);
+                updateWeekUI();
+            });
+
+            currentWeekBtn.addEventListener('click', () => {
+                selectedMonday = new Date(actualCurrentMonday);
                 updateWeekUI();
             });
 
