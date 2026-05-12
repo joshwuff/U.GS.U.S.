@@ -79,7 +79,6 @@
             box-sizing: border-box; 
         }
 
-        /* Gray out input when disabled */
         input:disabled {
             background-color: #f5f5f5;
             cursor: not-allowed;
@@ -290,7 +289,7 @@
             transition: width 0.5s ease-in-out;
         }
 
-        /* --- CUSTOM PASSWORD MODAL --- */
+        /* --- CUSTOM MODALS --- */
         .modal-overlay {
             display: none; 
             position: fixed;
@@ -328,6 +327,73 @@
         .modal-btn:hover { background-color: #000; }
         .modal-cancel { background-color: #ccc; color: #333; margin-top: 5px; }
         .modal-cancel:hover { background-color: #aaa; }
+
+        /* --- CUSTOM WEEK-PICKER CALENDAR --- */
+        .calendar-content {
+            padding: 20px;
+            max-width: 300px;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .calendar-nav-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #f57c00;
+            padding: 5px;
+            width: auto;
+        }
+
+        .calendar-grid-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .calendar-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-bottom: 15px;
+        }
+
+        .calendar-week {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .calendar-week:hover {
+            background-color: #ffe0b2; /* Highlights the entire horizontal week block */
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 8px 0;
+            font-size: 14px;
+            color: #333;
+            pointer-events: none; /* Let the row handle the click */
+        }
+
+        .calendar-day.muted {
+            color: #ccc;
+        }
 
         /* --- ADMIN PANEL STYLES --- */
         .admin-panel {
@@ -470,7 +536,6 @@
                 <button id="prevWeekBtn" class="nav-btn" title="Previous Week">◄</button>
                 <span class="week-label" id="weekLabel">Loading week...</span>
                 <button id="calendarBtn" class="nav-btn" title="Select Week">📅</button>
-                <input type="date" id="weekPicker" style="position: absolute; right: -9999px; visibility: hidden;">
                 <button id="nextWeekBtn" class="nav-btn" title="Next Week">►</button>
             </div>
         </div>
@@ -525,11 +590,26 @@
         </div>
     </div>
 
+    <div id="calendarModal" class="modal-overlay">
+        <div class="modal-content calendar-content">
+            <div class="calendar-header">
+                <button id="calPrevMonth" class="calendar-nav-btn">◄</button>
+                <span id="calMonthYear">Loading...</span>
+                <button id="calNextMonth" class="calendar-nav-btn">►</button>
+            </div>
+            <div class="calendar-grid-header">
+                <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+            </div>
+            <div id="calendarGrid" class="calendar-grid">
+                </div>
+            <button id="calCancelBtn" class="modal-btn modal-cancel">Cancel</button>
+        </div>
+    </div>
+
     <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v<span id="appVersionDisplay"></span></div>
 
     <script>
-        // --- APP VERSION MANAGER ---
-        const APP_VERSION = "4.8";
+        const APP_VERSION = "4.9";
 
         const _supabase = supabase.createClient(
             'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -539,7 +619,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('appVersionDisplay').textContent = APP_VERSION;
 
-            // Main App Elements
+            // App Elements
             const submitBtn = document.getElementById('submitBtn');
             const agentSelect = document.getElementById('agentSelect');
             const actionSelect = document.getElementById('actionSelect');
@@ -551,14 +631,20 @@
             const lockWarning = document.getElementById('lockWarning');
             const agentListElement = document.getElementById('agentList');
             
-            // Week Controls
             const weekLabel = document.getElementById('weekLabel');
             const prevWeekBtn = document.getElementById('prevWeekBtn');
             const nextWeekBtn = document.getElementById('nextWeekBtn');
             const calendarBtn = document.getElementById('calendarBtn');
-            const weekPicker = document.getElementById('weekPicker');
             
-            // Easter Egg & Admin Elements
+            // Custom Calendar Elements
+            const calendarModal = document.getElementById('calendarModal');
+            const calMonthYear = document.getElementById('calMonthYear');
+            const calendarGrid = document.getElementById('calendarGrid');
+            const calPrevMonth = document.getElementById('calPrevMonth');
+            const calNextMonth = document.getElementById('calNextMonth');
+            const calCancelBtn = document.getElementById('calCancelBtn');
+
+            // Admin Elements
             const secretLogo = document.getElementById('secretLogo');
             const passwordModal = document.getElementById('passwordModal');
             const secretCodeInput = document.getElementById('secretCodeInput');
@@ -580,7 +666,9 @@
                 const date = new Date(d);
                 const day = date.getDay();
                 const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-                return new Date(date.setDate(diff));
+                const monday = new Date(date.setDate(diff));
+                monday.setHours(0,0,0,0);
+                return monday;
             }
 
             function formatDateString(dateObj) {
@@ -593,6 +681,7 @@
             
             let selectedMonday = new Date(actualCurrentMonday);
             let selectedWeekString = actualCurrentWeekString;
+            let currentCalViewDate = new Date(selectedMonday);
 
             function updateWeekUI() {
                 selectedWeekString = formatDateString(selectedMonday);
@@ -613,7 +702,6 @@
                 fetchDashboardData();
             }
 
-            // Navigation Button Listeners
             prevWeekBtn.addEventListener('click', () => {
                 selectedMonday.setDate(selectedMonday.getDate() - 7);
                 updateWeekUI();
@@ -624,42 +712,93 @@
                 updateWeekUI();
             });
 
-            // Native cross-browser calendar trigger
-            calendarBtn.addEventListener('click', () => {
-                try {
-                    weekPicker.showPicker();
-                } catch (e) {
-                    // Fallback for older browsers
-                    weekPicker.focus();
+            // --- CUSTOM CALENDAR LOGIC ---
+            function renderCalendar() {
+                const year = currentCalViewDate.getFullYear();
+                const month = currentCalViewDate.getMonth();
+                calMonthYear.textContent = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                
+                calendarGrid.innerHTML = '';
+                
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const daysInPrevMonth = new Date(year, month, 0).getDate();
+                
+                let currentDay = 1;
+                let nextMonthDay = 1;
+                
+                for (let i = 0; i < 6; i++) {
+                    const weekRow = document.createElement('div');
+                    weekRow.className = 'calendar-week';
+                    
+                    let mondayForThisRow = null;
+                    
+                    for (let j = 0; j < 7; j++) {
+                        const dayCell = document.createElement('div');
+                        dayCell.className = 'calendar-day';
+                        let cellDate;
+                        
+                        if (i === 0 && j < firstDay) {
+                            dayCell.textContent = daysInPrevMonth - firstDay + j + 1;
+                            dayCell.classList.add('muted');
+                            cellDate = new Date(year, month - 1, dayCell.textContent);
+                        } else if (currentDay > daysInMonth) {
+                            dayCell.textContent = nextMonthDay++;
+                            dayCell.classList.add('muted');
+                            cellDate = new Date(year, month + 1, dayCell.textContent);
+                        } else {
+                            dayCell.textContent = currentDay++;
+                            cellDate = new Date(year, month, dayCell.textContent);
+                        }
+                        
+                        if (!mondayForThisRow) mondayForThisRow = getMonday(cellDate);
+                        weekRow.appendChild(dayCell);
+                    }
+                    
+                    weekRow.dataset.monday = mondayForThisRow.toISOString();
+                    weekRow.addEventListener('click', function() {
+                        selectedMonday = new Date(this.dataset.monday);
+                        updateWeekUI();
+                        calendarModal.style.display = 'none';
+                    });
+                    
+                    calendarGrid.appendChild(weekRow);
+                    if (currentDay > daysInMonth && i >= 4) break;
                 }
+            }
+
+            calendarBtn.addEventListener('click', () => {
+                currentCalViewDate = new Date(selectedMonday);
+                renderCalendar();
+                calendarModal.style.display = 'flex';
             });
 
-            // Parse the date manually to bypass timezone issues
-            weekPicker.addEventListener('change', (e) => {
-                if (e.target.value) {
-                    const [y, m, d] = e.target.value.split('-');
-                    const pickedDate = new Date(y, m - 1, d);
-                    selectedMonday = getMonday(pickedDate);
-                    updateWeekUI();
-                }
+            calPrevMonth.addEventListener('click', () => {
+                currentCalViewDate.setMonth(currentCalViewDate.getMonth() - 1);
+                renderCalendar();
+            });
+
+            calNextMonth.addEventListener('click', () => {
+                currentCalViewDate.setMonth(currentCalViewDate.getMonth() + 1);
+                renderCalendar();
+            });
+
+            calCancelBtn.addEventListener('click', () => {
+                calendarModal.style.display = 'none';
             });
 
             // --- INPUT SANITIZERS ---
-            function restrictToWholeNumbers(e) {
-                e.target.value = e.target.value.replace(/[^0-9]/g, '');
-            }
+            function restrictToWholeNumbers(e) { e.target.value = e.target.value.replace(/[^0-9]/g, ''); }
             numberInput.addEventListener('input', restrictToWholeNumbers);
             adminValueInput.addEventListener('input', restrictToWholeNumbers);
 
-            // --- EASTER EGG LOGIC ---
+            // --- EASTER EGG ---
             let logoClickCount = 0;
             let logoClickTimer;
-
             secretLogo.addEventListener('click', () => {
                 logoClickCount++;
                 clearTimeout(logoClickTimer);
                 logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 2000);
-
                 if (logoClickCount === 5) {
                     logoClickCount = 0; 
                     passwordModal.style.display = "flex";
@@ -667,7 +806,6 @@
                 }
             });
 
-            // --- PASSWORD VALIDATION ---
             function checkPassword() {
                 if (secretCodeInput.value === "Agents4ssembl3") {
                     passwordModal.style.display = "none";
@@ -683,17 +821,10 @@
 
             authSubmitBtn.addEventListener('click', checkPassword);
             secretCodeInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPassword(); });
-            
-            authCancelBtn.addEventListener('click', () => {
-                passwordModal.style.display = "none";
-                secretCodeInput.value = "";
-            });
+            authCancelBtn.addEventListener('click', () => { passwordModal.style.display = "none"; secretCodeInput.value = ""; });
+            closeAdminBtn.addEventListener('click', () => { adminPanel.style.display = "none"; });
 
-            closeAdminBtn.addEventListener('click', () => {
-                adminPanel.style.display = "none";
-            });
-
-            // --- MAIN UI TOGGLE LOGIC ---
+            // --- MAIN UI TOGGLE ---
             actionSelect.addEventListener('change', () => {
                 if (actionSelect.value === 'GOAL') {
                     numberInputLabel.textContent = "Scheduled Hours";
@@ -706,13 +837,9 @@
                 }
             });
 
-            // --- FETCH DATA FROM SUPABASE ---
+            // --- SUPABASE LOGIC ---
             async function fetchDashboardData() {
-                const { data, error } = await _supabase
-                    .from('utilization_logs')
-                    .select('*')
-                    .eq('week_of', selectedWeekString);
-
+                const { data, error } = await _supabase.from('utilization_logs').select('*').eq('week_of', selectedWeekString);
                 if (error) {
                     agentListElement.innerHTML = '<li class="agent-item" style="color:#d32f2f; text-align:center;">Error loading database.</li>';
                     return;
@@ -724,24 +851,17 @@
                     const realName = parts[0];
                     const logType = parts[1] || 'GOAL';
 
-                    if (!precinctData[realName]) {
-                        precinctData[realName] = { goal: 0, progress: 0 };
-                    }
-                    if (logType === 'GOAL') {
-                        precinctData[realName].goal += log.target_minutes;
-                    } else if (logType === 'PROGRESS') {
-                        precinctData[realName].progress += log.target_minutes;
-                    }
+                    if (!precinctData[realName]) precinctData[realName] = { goal: 0, progress: 0 };
+                    if (logType === 'GOAL') precinctData[realName].goal += log.target_minutes;
+                    else if (logType === 'PROGRESS') precinctData[realName].progress += log.target_minutes;
                 });
 
                 renderDashboard(precinctData);
             }
 
-            // --- RENDER DASHBOARD ---
             function renderDashboard(data) {
                 agentListElement.innerHTML = ''; 
                 const sortedAgents = Object.keys(data).sort();
-
                 if (sortedAgents.length === 0) {
                     agentListElement.innerHTML = '<li class="agent-item" style="color:#999; text-align:center;">No data logged this week.</li>';
                     return;
@@ -750,29 +870,21 @@
                 sortedAgents.forEach(agent => {
                     const goal = data[agent].goal;
                     const progress = data[agent].progress;
-                    
-                    let percent = 0;
-                    if (goal > 0) {
-                        percent = Math.min(Math.round((progress / goal) * 100), 100);
-                    }
+                    let percent = goal > 0 ? Math.min(Math.round((progress / goal) * 100), 100) : 0;
 
                     const li = document.createElement('li');
                     li.className = 'agent-item';
-                    
                     li.innerHTML = `
                         <div class="agent-header">
                             <span class="agent-name">${agent}</span>
                             <span class="agent-stats">${progress} / ${goal} min (${percent}%)</span>
                         </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width: ${percent}%;"></div>
-                        </div>
+                        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${percent}%;"></div></div>
                     `;
                     agentListElement.appendChild(li);
                 });
             }
 
-            // --- CALCULATE AND SEND (PUBLIC UI) ---
             async function submitData() {
                 const selectedAgent = agentSelect.value;
                 const action = actionSelect.value;
@@ -798,38 +910,30 @@
                 submitBtn.textContent = "Submit Data";
 
                 if (error) {
-                    resultOutput.style.color = "#d32f2f"; 
-                    resultOutput.textContent = "Failed to sync to cloud.";
-                    return;
+                    resultOutput.style.color = "#d32f2f"; resultOutput.textContent = "Failed to sync to cloud."; return;
                 }
 
                 resultOutput.style.color = "#4CAF50"; 
                 resultOutput.textContent = `Success! Saved data for ${selectedAgent}.`;
-                
                 robotCheck.checked = false;
                 numberInput.value = '';
                 fetchDashboardData();
             }
 
-            // --- ADMIN OVERRIDE (INDIVIDUAL AGENT EDIT) ---
             async function forceUpdateAgent() {
                 const targetAgent = adminAgentSelect.value;
                 const targetAction = adminActionSelect.value;
                 const exactMinutes = adminValueInput.value;
 
                 if (exactMinutes === "" || isNaN(exactMinutes)) {
-                    adminFeedback.textContent = "Please enter valid total minutes.";
-                    return;
+                    adminFeedback.textContent = "Please enter valid total minutes."; return;
                 }
 
                 const dbAgentName = `${targetAgent}|${targetAction}`;
                 adminOverrideBtn.textContent = "Updating...";
                 adminOverrideBtn.disabled = true;
 
-                await _supabase.from('utilization_logs').delete()
-                    .eq('week_of', selectedWeekString)
-                    .eq('agent_name', dbAgentName);
-
+                await _supabase.from('utilization_logs').delete().eq('week_of', selectedWeekString).eq('agent_name', dbAgentName);
                 const { error } = await _supabase.from('utilization_logs').insert([
                     { agent_name: dbAgentName, target_minutes: parseInt(exactMinutes), week_of: selectedWeekString }
                 ]);
@@ -844,30 +948,24 @@
                     adminFeedback.textContent = `Successfully updated ${targetAgent} for ${selectedWeekString}.`;
                     adminValueInput.value = '';
                     fetchDashboardData();
-                    
                     setTimeout(() => { adminFeedback.textContent = ""; adminFeedback.style.color = "#d32f2f"; }, 4000);
                 }
             }
 
-            // --- ADMIN FULL WIPE ---
             async function manualReset() {
                 if(confirm(`Are you sure you want to clear ALL cloud data for the week of ${selectedWeekString}?`)) {
                     if(confirm("FINAL WARNING: Wiping the database now.")) {
                         const { error } = await _supabase.from('utilization_logs').delete().eq('week_of', selectedWeekString);
-                        if (!error) {
-                            fetchDashboardData();
-                        }
+                        if (!error) fetchDashboardData();
                     }
                 }
             }
 
             submitBtn.addEventListener('click', submitData);
             numberInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !submitBtn.disabled) submitData(); });
-            
             adminOverrideBtn.addEventListener('click', forceUpdateAgent);
             resetDataBtn.addEventListener('click', manualReset);
 
-            // Initial load
             updateWeekUI();
         });
     </script>
