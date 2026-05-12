@@ -56,6 +56,7 @@
             font-size: 14px;
             color: #666666;
             margin-bottom: 5px;
+            font-weight: bold;
         }
 
         input[type="number"], select {
@@ -68,12 +69,15 @@
         }
 
         .formula-text {
-            font-size: 14px;
-            color: #333333;
+            font-size: 13px;
+            color: #555555;
             margin-bottom: 20px;
+            background-color: #f9f9f9;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #f57c00;
         }
 
-        /* Fake reCAPTCHA Styling */
         .fake-recaptcha {
             display: flex;
             justify-content: space-between;
@@ -170,7 +174,7 @@
             flex-direction: column;
             border-bottom: 2px solid #f57c00;
             padding-bottom: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .dashboard-header h2 {
@@ -191,15 +195,19 @@
         }
 
         .agent-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
+            padding: 15px 0;
             border-bottom: 1px solid #eeeeee;
-            font-size: 16px;
         }
 
         .agent-item:last-child {
             border-bottom: none;
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 16px;
         }
 
         .agent-name {
@@ -208,6 +216,22 @@
 
         .agent-stats {
             color: #555555;
+            font-size: 14px;
+        }
+
+        /* Progress Bar Styles */
+        .progress-bar-bg {
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            height: 12px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            background-color: #4CAF50;
+            height: 100%;
+            transition: width 0.5s ease-in-out;
         }
 
         .footer-note {
@@ -238,7 +262,7 @@
     <div class="calculator-container">
         <img src="U.GS.U.C-logo.png" alt="Unofficial Geek Squad U.GS.U.C. Logo" class="logo">
 
-        <h1>U.GS.U.C. - Utilization Goal</h1>
+        <h1>U.GS.U.C. - Utilization Tracker</h1>
 
         <div class="input-group">
             <label for="agentSelect" class="input-label">Select Agent</label>
@@ -259,11 +283,19 @@
         </div>
 
         <div class="input-group">
-            <label for="hoursWorked" class="input-label">Hours Worked</label>
-            <input type="number" id="hoursWorked" placeholder="e.g., 8" autocomplete="off">
+            <label for="actionSelect" class="input-label">What are you doing?</label>
+            <select id="actionSelect" autocomplete="off">
+                <option value="GOAL">1. Set Scheduled Target for the Week</option>
+                <option value="PROGRESS">2. Log Generated Minutes (Daily Progress)</option>
+            </select>
         </div>
 
-        <p class="formula-text">Goal = (hours x 60) x 0.81</p>
+        <div class="input-group">
+            <label id="numberInputLabel" for="numberInput" class="input-label">Scheduled Hours</label>
+            <input type="number" id="numberInput" placeholder="e.g., 35" autocomplete="off">
+        </div>
+
+        <p id="formulaText" class="formula-text">Math: (Hours x 60) x 0.81 = Target Minutes</p>
 
         <div class="fake-recaptcha">
             <label class="fake-recaptcha-left" for="robotCheck">
@@ -276,7 +308,7 @@
             </div>
         </div>
 
-        <button id="calculateBtn">Calculate & Log Target</button>
+        <button id="submitBtn">Submit Data</button>
 
         <div class="result-section">
             <p id="resultOutput" class="result-output">Ready to sync...</p>
@@ -289,32 +321,48 @@
             <span class="week-label" id="weekLabel">Loading week...</span>
         </div>
         <ul class="agent-list" id="agentList">
-            <li class="agent-item" style="color:#999; justify-content:center;">Connecting to database...</li>
+            <li class="agent-item" style="color:#999; text-align:center;">Connecting to database...</li>
         </ul>
     </div>
 
     <button id="resetDataBtn" class="reset-btn">Reset Data for Current Week</button>
 
-    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v1.0 (Cloud Sync)</div>
+    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v2.0 (Target vs Progress)</div>
 
     <script>
-        // Initialize Supabase with your specific Project URL and Publishable Key
+        // URL is now corrected with the missing 'a'
         const _supabase = supabase.createClient(
-            'https://yxeozqztofvpydxveyr.supabase.co',
+            'https://yxeozqztofvpyadxveyr.supabase.co',
             'sb_publishable_3WRcMc4zjv-N-9oZry-SbA_MmRRKv1b'
         );
 
         document.addEventListener('DOMContentLoaded', () => {
-            const calculateBtn = document.getElementById('calculateBtn');
+            const submitBtn = document.getElementById('submitBtn');
             const resetDataBtn = document.getElementById('resetDataBtn');
             const agentSelect = document.getElementById('agentSelect');
-            const hoursInput = document.getElementById('hoursWorked');
+            const actionSelect = document.getElementById('actionSelect');
+            const numberInputLabel = document.getElementById('numberInputLabel');
+            const numberInput = document.getElementById('numberInput');
+            const formulaText = document.getElementById('formulaText');
             const robotCheck = document.getElementById('robotCheck');
             const resultOutput = document.getElementById('resultOutput');
             const agentListElement = document.getElementById('agentList');
             const weekLabel = document.getElementById('weekLabel');
 
-            // --- DATE & WEEK LOGIC ---
+            // --- UI TOGGLE LOGIC ---
+            actionSelect.addEventListener('change', () => {
+                if (actionSelect.value === 'GOAL') {
+                    numberInputLabel.textContent = "Scheduled Hours";
+                    numberInput.placeholder = "e.g., 35";
+                    formulaText.textContent = "Math: (Hours x 60) x 0.81 = Target Minutes";
+                } else {
+                    numberInputLabel.textContent = "Minutes Generated Today";
+                    numberInput.placeholder = "e.g., 240";
+                    formulaText.textContent = "Raw minutes generated from completed tags.";
+                }
+            });
+
+            // --- DATE LOGIC ---
             function getMondayOfCurrentWeek() {
                 const today = new Date();
                 const day = today.getDay();
@@ -327,14 +375,8 @@
             const currentWeekString = getMondayOfCurrentWeek();
             weekLabel.textContent = `Week of ${currentWeekString}`;
 
-            // --- UI RESET ---
-            hoursInput.value = '';
-            agentSelect.selectedIndex = 0;
-            robotCheck.checked = false;
-
             // --- FETCH DATA FROM SUPABASE ---
             async function fetchDashboardData() {
-                // Pull all logs from the database that match the current week
                 const { data, error } = await _supabase
                     .from('utilization_logs')
                     .select('*')
@@ -342,52 +384,72 @@
 
                 if (error) {
                     console.error("Error fetching data:", error);
-                    agentListElement.innerHTML = '<li class="agent-item" style="color:#d32f2f; justify-content:center;">Error loading database.</li>';
+                    agentListElement.innerHTML = '<li class="agent-item" style="color:#d32f2f; text-align:center;">Error loading database.</li>';
                     return;
                 }
 
-                // Add up the minutes for each agent
-                const totals = {};
+                // Sort the raw logs into Goals and Progress per agent
+                const precinctData = {};
+                
                 data.forEach(log => {
-                    if (!totals[log.agent_name]) {
-                        totals[log.agent_name] = 0;
+                    const parts = log.agent_name.split('|');
+                    const realName = parts[0];
+                    const logType = parts[1] || 'GOAL';
+
+                    if (!precinctData[realName]) {
+                        precinctData[realName] = { goal: 0, progress: 0 };
                     }
-                    totals[log.agent_name] += log.target_minutes;
+
+                    if (logType === 'GOAL') {
+                        precinctData[realName].goal += log.target_minutes;
+                    } else if (logType === 'PROGRESS') {
+                        precinctData[realName].progress += log.target_minutes;
+                    }
                 });
 
-                renderDashboard(totals);
+                renderDashboard(precinctData);
             }
 
             // --- RENDER DASHBOARD ---
-            function renderDashboard(totals) {
+            function renderDashboard(data) {
                 agentListElement.innerHTML = ''; 
-                const sortedAgents = Object.keys(totals).sort();
+                const sortedAgents = Object.keys(data).sort();
 
                 if (sortedAgents.length === 0) {
-                    agentListElement.innerHTML = '<li class="agent-item" style="color:#999; justify-content:center;">No data logged this week.</li>';
+                    agentListElement.innerHTML = '<li class="agent-item" style="color:#999; text-align:center;">No data logged this week.</li>';
                     return;
                 }
 
                 sortedAgents.forEach(agent => {
-                    const totalMinutes = totals[agent];
-                    const displayHours = Math.floor(totalMinutes / 60);
-                    const displayMinutes = totalMinutes % 60;
+                    const goal = data[agent].goal;
+                    const progress = data[agent].progress;
+                    
+                    let percent = 0;
+                    if (goal > 0) {
+                        percent = Math.min(Math.round((progress / goal) * 100), 100);
+                    }
 
                     const li = document.createElement('li');
                     li.className = 'agent-item';
                     
                     li.innerHTML = `
-                        <span class="agent-name">${agent}</span>
-                        <span class="agent-stats">${totalMinutes} min (~${displayHours}h ${displayMinutes}m)</span>
+                        <div class="agent-header">
+                            <span class="agent-name">${agent}</span>
+                            <span class="agent-stats">${progress} / ${goal} min (${percent}%)</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: ${percent}%;"></div>
+                        </div>
                     `;
                     agentListElement.appendChild(li);
                 });
             }
 
             // --- CALCULATE AND SEND TO SUPABASE ---
-            async function calculateGoal() {
+            async function submitData() {
                 const selectedAgent = agentSelect.value;
-                const hoursVal = hoursInput.value;
+                const action = actionSelect.value;
+                const numVal = numberInput.value;
 
                 if (!selectedAgent) {
                     resultOutput.textContent = "Please select an agent first!";
@@ -401,50 +463,61 @@
                     return;
                 }
 
-                if (hoursVal === "" || isNaN(hoursVal) || hoursVal < 0) {
-                    resultOutput.textContent = "Please enter a valid number of hours.";
+                if (numVal === "" || isNaN(numVal) || numVal < 0) {
+                    resultOutput.textContent = "Please enter a valid number.";
                     resultOutput.style.color = "#d32f2f";
                     return;
                 }
 
-                calculateBtn.disabled = true;
-                calculateBtn.textContent = "Saving...";
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Saving...";
 
-                const hours = parseFloat(hoursVal);
-                const targetMinutes = Math.round((hours * 60) * 0.81);
+                let finalMinutes = 0;
+                if (action === 'GOAL') {
+                    // Calculate target from scheduled hours
+                    finalMinutes = Math.round((parseFloat(numVal) * 60) * 0.81);
+                } else {
+                    // Directly log the generated minutes
+                    finalMinutes = parseInt(numVal);
+                }
 
-                // Insert the new log into the Supabase database
+                // Append the action type to the name
+                const dbAgentName = `${selectedAgent}|${action}`;
+
                 const { error } = await _supabase
                     .from('utilization_logs')
                     .insert([
                         { 
-                            agent_name: selectedAgent, 
-                            target_minutes: targetMinutes, 
+                            agent_name: dbAgentName, 
+                            target_minutes: finalMinutes, 
                             week_of: currentWeekString 
                         }
                     ]);
 
-                calculateBtn.disabled = false;
-                calculateBtn.textContent = "Calculate & Log Target";
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Submit Data";
 
                 if (error) {
                     console.error("Error saving data:", error);
                     resultOutput.style.color = "#d32f2f"; 
-                    resultOutput.textContent = "Failed to sync to cloud. Try again.";
+                    resultOutput.textContent = "Failed to sync to cloud.";
                     return;
                 }
 
                 resultOutput.style.color = "#4CAF50"; 
-                resultOutput.textContent = `Synced ${targetMinutes} target minutes for ${selectedAgent}.`;
+                if (action === 'GOAL') {
+                    resultOutput.textContent = `Set weekly target of ${finalMinutes} minutes for ${selectedAgent}.`;
+                } else {
+                    resultOutput.textContent = `Logged ${finalMinutes} generated minutes for ${selectedAgent}.`;
+                }
                 
                 robotCheck.checked = false;
-                hoursInput.value = '';
+                numberInput.value = '';
 
-                // Refresh the dashboard with the newly saved data
                 fetchDashboardData();
             }
 
-            // --- MANUAL RESET (WIPES THE CLOUD FOR THIS WEEK) ---
+            // --- MANUAL RESET ---
             async function manualReset() {
                 if(confirm("Are you sure you want to clear ALL cloud data for this week? This deletes everyone's logs and cannot be undone!")) {
                     resultOutput.textContent = "Deleting...";
@@ -455,7 +528,6 @@
                         .eq('week_of', currentWeekString);
 
                     if (error) {
-                        console.error("Error deleting data:", error);
                         resultOutput.textContent = "Failed to delete data.";
                         resultOutput.style.color = "#d32f2f";
                         return;
@@ -467,14 +539,13 @@
                 }
             }
 
-            // --- INITIALIZE ON LOAD ---
-            calculateBtn.addEventListener('click', calculateGoal);
+            submitBtn.addEventListener('click', submitData);
             resetDataBtn.addEventListener('click', manualReset);
-            hoursInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') calculateGoal();
+            numberInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') submitData();
             });
 
-            // Fetch the live data as soon as the page loads!
+            // Initial load
             fetchDashboardData();
         });
     </script>
