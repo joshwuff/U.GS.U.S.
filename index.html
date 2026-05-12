@@ -95,7 +95,7 @@
             background-color: var(--gs-gray);
             color: #ffffff;
             border-radius: 8px;
-            display: none; /* Hidden until calculated */
+            display: none;
         }
 
         .result-number {
@@ -110,7 +110,6 @@
             opacity: 0.8;
         }
         
-        /* A tiny nod to the whiteboard art */
         .footer-note {
             margin-top: 20px;
             font-size: 0.8rem;
@@ -138,7 +137,7 @@
         </div>
     </div>
 
-    <div class="footer-note">Target: 81% (0.81) | Stay wockle :3</div>
+    <div class="footer-note">Target: 81% (0.81) | Stay wockle :3 | v0.1</div>
 
     <script>
         function calculateUtilization() {
@@ -147,21 +146,14 @@
             const minutesResult = document.getElementById('minutesResult');
             const hoursResult = document.getElementById('hoursResult');
 
-            // Parse the input to a float, default to 0 if empty
             const hours = parseFloat(hoursInput) || 0;
 
             if (hours > 0) {
-                // The formula from the whiteboard: (hours * 60) * 0.81
                 const totalMinutes = (hours * 60) * 0.81;
-                
-                // Round to the nearest whole minute for a cleaner target
                 const roundedMinutes = Math.round(totalMinutes);
-                
-                // Calculate rough hours and minutes for better visualization
                 const displayHours = Math.floor(roundedMinutes / 60);
                 const displayMinutes = roundedMinutes % 60;
 
-                // Update the DOM
                 minutesResult.innerText = roundedMinutes;
                 
                 if (displayHours > 0) {
@@ -170,7 +162,6 @@
                     hoursResult.innerText = '';
                 }
 
-                // Show the result block
                 resultContainer.style.display = 'block';
             } else {
                 alert("Please enter a valid number of hours.");
