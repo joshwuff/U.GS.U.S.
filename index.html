@@ -406,7 +406,7 @@
 <body>
 
     <div class="calculator-container">
-        <img src="U.GS.U.C-logo.png" id="secretLogo" alt="Unofficial Geek Squad U.GS.U.S. Logo" class="logo">
+        <img src="U.GS.U.S-logo.png" id="secretLogo" alt="Unofficial Geek Squad U.GS.U.S. Logo" class="logo">
 
         <h1>U.GS.U.S. - Utilization System</h1>
 
@@ -468,8 +468,8 @@
             <div class="week-controls">
                 <button id="prevWeekBtn" class="nav-btn" title="Previous Week">◄</button>
                 <span class="week-label" id="weekLabel">Loading week...</span>
-                <button id="calendarBtn" class="nav-btn" title="Select Date">📅</button>
-                <input type="date" id="weekPicker" style="opacity: 0; position: absolute; pointer-events: none;">
+                <button id="calendarBtn" class="nav-btn" title="Select Week">📅</button>
+                <input type="week" id="weekPicker" style="opacity: 0; position: absolute; pointer-events: none;">
                 <button id="nextWeekBtn" class="nav-btn" title="Next Week">►</button>
             </div>
         </div>
@@ -524,11 +524,11 @@
         </div>
     </div>
 
-    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | <span id="appVersionDisplay"></span></div>
+    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v<span id="appVersionDisplay"></span></div>
 
     <script>
         // --- APP VERSION MANAGER ---
-        const APP_VERSION = "v4.5";
+        const APP_VERSION = "4.6";
 
         const _supabase = supabase.createClient(
             'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -587,7 +587,6 @@
                 return dateObj.toLocaleDateString('en-US', options);
             }
 
-            // Track both the actual current week and the week the user is looking at
             const actualCurrentMonday = getMonday(new Date());
             const actualCurrentWeekString = formatDateString(actualCurrentMonday);
             
@@ -598,7 +597,6 @@
                 selectedWeekString = formatDateString(selectedMonday);
                 weekLabel.textContent = `${selectedWeekString}`;
 
-                // Lock the main public input if they navigate away from the current week
                 if (selectedWeekString !== actualCurrentWeekString) {
                     submitBtn.disabled = true;
                     numberInput.disabled = true;
@@ -611,7 +609,6 @@
                     lockWarning.style.display = "none";
                 }
 
-                // Fetch new data for the newly selected week
                 fetchDashboardData();
             }
 
@@ -626,17 +623,28 @@
                 updateWeekUI();
             });
 
-            // Calendar Picker Listeners
             calendarBtn.addEventListener('click', () => {
                 weekPicker.showPicker();
             });
 
+            // Parse the YYYY-Www format from the week picker
             weekPicker.addEventListener('change', (e) => {
                 if (e.target.value) {
-                    // Break apart the date string to prevent timezone shifting
-                    const [y, m, d] = e.target.value.split('-');
-                    const pickedDate = new Date(y, m - 1, d);
-                    selectedMonday = getMonday(pickedDate);
+                    const parts = e.target.value.split('-W');
+                    const year = parseInt(parts[0], 10);
+                    const week = parseInt(parts[1], 10);
+                    
+                    const simple = new Date(year, 0, 1 + (week - 1) * 7);
+                    const dow = simple.getDay();
+                    const isoWeekStart = simple;
+                    
+                    if (dow <= 4) {
+                        isoWeekStart.setDate(simple.getDate() - simple.getDay() + 1);
+                    } else {
+                        isoWeekStart.setDate(simple.getDate() + 8 - simple.getDay());
+                    }
+                    
+                    selectedMonday = getMonday(isoWeekStart);
                     updateWeekUI();
                 }
             });
@@ -705,7 +713,6 @@
 
             // --- FETCH DATA FROM SUPABASE ---
             async function fetchDashboardData() {
-                // Notice we fetch based on selectedWeekString now!
                 const { data, error } = await _supabase
                     .from('utilization_logs')
                     .select('*')
@@ -824,7 +831,6 @@
                 adminOverrideBtn.textContent = "Updating...";
                 adminOverrideBtn.disabled = true;
 
-                // Deletes/Updates use the selectedWeekString so you can fix past weeks!
                 await _supabase.from('utilization_logs').delete()
                     .eq('week_of', selectedWeekString)
                     .eq('agent_name', dbAgentName);
