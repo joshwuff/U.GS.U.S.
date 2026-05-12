@@ -1,2 +1,2 @@
-# U.GS.U.C.
-The Unofficial GeekSquad Utilization Calculator!
+# U.GS.U.S.
+The Unofficial GeekSquad Utilization System!
