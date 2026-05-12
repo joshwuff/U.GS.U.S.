@@ -286,7 +286,7 @@
             padding: 0 5px;
             width: auto;
             margin: 0;
-            font-family: Arial, sans-serif; /* Ensures consistent arrow rendering */
+            font-family: Arial, sans-serif;
         }
         
         .nav-btn:hover { color: #e66a00; background: none; }
@@ -331,7 +331,7 @@
         .admin-action-btn { background-color: #d32f2f; color: white; border: none; padding: 10px 20px; font-size: 14px; border-radius: 4px; cursor: pointer; width: 100%; }
         .admin-action-btn:hover { background-color: #b71c1c; }
         
-        /* NEW: Audit Log Table */
+        /* Audit Log Table */
         .audit-log-container {
             margin-top: 15px;
             background: #fff;
@@ -352,6 +352,7 @@
             padding: 8px;
             position: sticky;
             top: 0;
+            text-align: left;
         }
         .audit-table td {
             padding: 8px;
@@ -565,6 +566,7 @@
                         <th>WO #</th>
                         <th>Services</th>
                         <th>Min</th>
+                        <th>Logged At</th>
                     </tr>
                 </thead>
                 <tbody id="auditLogBody">
@@ -608,7 +610,7 @@
     <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v<span id="appVersionDisplay"></span></div>
 
     <script>
-        const APP_VERSION = "4.13";
+        const APP_VERSION = "4.14";
 
         const _supabase = supabase.createClient(
             'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -851,7 +853,7 @@
                 }
 
                 const precinctData = {};
-                const auditLogs = []; // Array to hold parsed WO data
+                const auditLogs = []; 
 
                 data.forEach(log => {
                     const parts = log.agent_name.split('|');
@@ -865,8 +867,6 @@
                     } else if (logType === 'PROGRESS') {
                         precinctData[realName].progress += log.target_minutes;
                         
-                        // Parse WO Audit Data
-                        // Format: Josh|PROGRESS|WO:1234|GSDI+GSSW
                         const wo = parts[2] ? parts[2].replace('WO:', '') : 'Manual';
                         const tags = parts[3] ? parts[3].replace(/\+/g, ', ') : 'Overwrite';
                         
@@ -914,20 +914,29 @@
                 auditLogBody.innerHTML = '';
                 
                 if (logs.length === 0) {
-                    auditLogBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #999;">No work orders logged this week.</td></tr>`;
+                    auditLogBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #999;">No work orders logged this week.</td></tr>`;
                     return;
                 }
                 
-                // Sort logs by newest first
                 logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                 
                 logs.forEach(log => {
+                    // Format the timestamp nicely
+                    const dateObj = new Date(log.timestamp);
+                    const timeStr = dateObj.toLocaleString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        hour: 'numeric', 
+                        minute: '2-digit' 
+                    });
+
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><strong>${log.agent}</strong></td>
                         <td>${log.wo}</td>
                         <td>${log.tags}</td>
                         <td><strong>${log.mins}</strong></td>
+                        <td style="color: #666; font-size: 11px;">${timeStr}</td>
                     `;
                     auditLogBody.appendChild(tr);
                 });
