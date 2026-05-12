@@ -19,18 +19,6 @@
             min-height: 100vh;
         }
 
-        .calculator-container {
-            background-color: #ffffff;
-            width: 100%;
-            max-width: 600px;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-        }
-
         .logo {
             display: block;
             margin: 0 auto 30px;
@@ -44,11 +32,66 @@
             font-size: 24px;
             font-weight: bold;
             color: #000000;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+            width: 100%;
         }
 
+        /* --- NEW LAYOUT: Side-by-Side on Desktop --- */
+        .main-layout {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 900px; /* Widened to fit the cheat sheet */
+            margin-bottom: 20px;
+        }
+
+        .calculator-container {
+            background-color: #ffffff;
+            flex: 1;
+            min-width: 300px;
+            max-width: 500px;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .cheatsheet-container {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 350px;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            height: fit-content;
+        }
+
+        .cheatsheet-container h3 {
+            margin-top: 0;
+            color: #f57c00;
+            border-bottom: 2px solid #f57c00;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .cheatsheet-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px 15px;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .cs-tag { font-weight: bold; color: #000; }
+        .cs-min { background: #f9f9f9; padding: 4px 8px; border-radius: 4px; border: 1px solid #eee; text-align: right;}
+
         .input-group {
-            width: 80%;
+            width: 90%;
             margin: 0 auto 20px;
             text-align: left;
         }
@@ -92,6 +135,37 @@
             padding: 8px;
             border-radius: 4px;
             border-left: 3px solid #f57c00;
+            width: 90%;
+            margin: 0 auto 20px auto;
+            box-sizing: border-box;
+        }
+
+        .wo-calc-container {
+            background-color: #fdfdfd;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 0 auto 20px auto;
+            width: 90%;
+            box-sizing: border-box;
+        }
+
+        .wo-calc-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .wo-calc-row select { font-size: 14px; padding: 8px; }
+
+        .wo-total-display {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
         }
 
         .fake-recaptcha {
@@ -103,7 +177,7 @@
             border-radius: 3px;
             padding: 10px 15px;
             margin: 0 auto 20px auto;
-            width: 80%;
+            width: 90%;
             box-sizing: border-box;
         }
 
@@ -151,36 +225,16 @@
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.3s;
-            width: 80%;
+            width: 90%;
             margin-bottom: 10px;
         }
 
-        button:hover {
-            background-color: #e66a00;
-        }
+        button:hover { background-color: #e66a00; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
 
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-
-        .result-section {
-            margin-top: 20px;
-        }
-
-        .result-output {
-            font-size: 18px;
-            color: #666666;
-            font-style: italic;
-        }
-
-        .lock-warning {
-            color: #d32f2f;
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: none;
-        }
+        .result-section { margin-top: 20px; }
+        .result-output { font-size: 18px; color: #666666; font-style: italic; }
+        .lock-warning { color: #d32f2f; font-size: 12px; font-weight: bold; margin-bottom: 10px; display: none; }
 
         /* Dashboard Styling */
         .dashboard {
@@ -202,11 +256,7 @@
             margin-bottom: 15px;
         }
 
-        .dashboard-header h2 {
-            font-size: 20px;
-            margin: 0 0 10px 0;
-            text-align: center;
-        }
+        .dashboard-header h2 { font-size: 20px; margin: 0 0 10px 0; text-align: center; }
         
         .week-controls {
             display: flex;
@@ -239,294 +289,192 @@
             margin: 0;
         }
         
-        .nav-btn:hover {
-            color: #e66a00;
-            background: none;
-        }
+        .nav-btn:hover { color: #e66a00; background: none; }
 
-        .agent-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+        .agent-list { list-style: none; padding: 0; margin: 0; }
+        .agent-item { padding: 15px 0; border-bottom: 1px solid #eeeeee; }
+        .agent-item:last-child { border-bottom: none; }
+        .agent-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 16px; }
+        .agent-name { font-weight: bold; }
+        .agent-stats { color: #555555; font-size: 14px; }
+        .progress-bar-bg { background-color: #e0e0e0; border-radius: 4px; height: 12px; width: 100%; overflow: hidden; }
+        .progress-bar-fill { background-color: #4CAF50; height: 100%; transition: width 0.5s ease-in-out; }
 
-        .agent-item {
-            padding: 15px 0;
-            border-bottom: 1px solid #eeeeee;
-        }
-
-        .agent-item:last-child {
-            border-bottom: none;
-        }
-
-        .agent-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 16px;
-        }
-
-        .agent-name {
-            font-weight: bold;
-        }
-
-        .agent-stats {
-            color: #555555;
-            font-size: 14px;
-        }
-
-        .progress-bar-bg {
-            background-color: #e0e0e0;
-            border-radius: 4px;
-            height: 12px;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            background-color: #4CAF50;
-            height: 100%;
-            transition: width 0.5s ease-in-out;
-        }
-
-        /* --- CUSTOM MODALS --- */
-        .modal-overlay {
-            display: none; 
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            text-align: center;
-            width: 90%;
-            max-width: 350px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-
-        .modal-content h3 {
-            margin-top: 0;
-            color: #333;
-        }
-
-        .modal-btn {
-            background-color: #333;
-            color: white;
-            margin-top: 15px;
-            padding: 10px;
-            width: 100%;
-            font-size: 16px;
-        }
-        
+        /* --- CUSTOM MODALS & ADMIN (Truncated for space, unchanged from v4.11) --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 8px; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .modal-content h3 { margin-top: 0; color: #333; }
+        .modal-btn { background-color: #333; color: white; margin-top: 15px; padding: 10px; width: 100%; font-size: 16px; }
         .modal-btn:hover { background-color: #000; }
         .modal-cancel { background-color: #ccc; color: #333; margin-top: 5px; }
         .modal-cancel:hover { background-color: #aaa; }
-
-        /* --- CUSTOM WEEK-PICKER CALENDAR --- */
-        .calendar-content {
-            padding: 20px;
-            max-width: 300px;
-        }
+        .calendar-content { padding: 20px; max-width: 300px; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: bold; font-size: 16px; color: #333; }
+        .calendar-nav-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: #f57c00; padding: 5px; width: auto; }
+        .calendar-grid-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; color: #888; margin-bottom: 5px; font-weight: bold; }
+        .calendar-grid { display: flex; flex-direction: column; gap: 2px; margin-bottom: 15px; }
+        .calendar-week { display: grid; grid-template-columns: repeat(7, 1fr); cursor: pointer; border-radius: 4px; transition: background-color 0.2s; }
+        .calendar-week:hover { background-color: #ffe0b2; }
+        .calendar-day { text-align: center; padding: 8px 0; font-size: 14px; color: #333; pointer-events: none; }
+        .calendar-day.muted { color: #ccc; }
         
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-weight: bold;
-            font-size: 16px;
-            color: #333;
-        }
-
-        .calendar-nav-btn {
-            background: none;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            color: #f57c00;
-            padding: 5px;
-            width: auto;
-        }
-
-        .calendar-grid-header {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .calendar-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            margin-bottom: 15px;
-        }
-
-        .calendar-week {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-
-        .calendar-week:hover {
-            background-color: #ffe0b2;
-        }
-
-        .calendar-day {
-            text-align: center;
-            padding: 8px 0;
-            font-size: 14px;
-            color: #333;
-            pointer-events: none; 
-        }
-
-        .calendar-day.muted {
-            color: #ccc;
-        }
-
-        /* --- ADMIN PANEL STYLES --- */
-        .admin-panel {
-            width: 100%;
-            max-width: 600px;
-            background-color: #ffebee;
-            border: 2px solid #ef5350;
-            padding: 20px;
-            border-radius: 8px;
-            box-sizing: border-box;
-            text-align: center;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .close-admin-btn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 20px;
-            font-weight: bold;
-            color: #d32f2f;
-            cursor: pointer;
-        }
-
+        .admin-panel { width: 100%; max-width: 600px; background-color: #ffebee; border: 2px solid #ef5350; padding: 20px; border-radius: 8px; box-sizing: border-box; text-align: center; margin-bottom: 20px; position: relative; }
+        .close-admin-btn { position: absolute; top: 10px; right: 15px; font-size: 20px; font-weight: bold; color: #d32f2f; cursor: pointer; }
         .close-admin-btn:hover { color: #b71c1c; }
-
-        .admin-panel h3 {
-            margin-top: 0;
-            color: #c62828;
-            margin-bottom: 20px;
-        }
-
-        .admin-divider {
-            border: 0;
-            height: 1px;
-            background: #ef5350;
-            margin: 20px 0;
-            opacity: 0.5;
-        }
-
-        .admin-edit-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .admin-edit-group select, .admin-edit-group input {
-            flex: 1;
-            min-width: 120px;
-            padding: 8px;
-            font-size: 14px;
-        }
-
-        .admin-action-btn {
-            background-color: #d32f2f;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-        }
-        
+        .admin-panel h3 { margin-top: 0; color: #c62828; margin-bottom: 20px; }
+        .admin-divider { border: 0; height: 1px; background: #ef5350; margin: 20px 0; opacity: 0.5; }
+        .admin-edit-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .admin-edit-group select, .admin-edit-group input { flex: 1; min-width: 120px; padding: 8px; font-size: 14px; }
+        .admin-action-btn { background-color: #d32f2f; color: white; border: none; padding: 10px 20px; font-size: 14px; border-radius: 4px; cursor: pointer; width: 100%; }
         .admin-action-btn:hover { background-color: #b71c1c; }
+        .footer-note { font-size: 12px; color: #888888; text-align: center; margin-bottom: 30px; }
 
-        .footer-note {
-            font-size: 12px;
-            color: #888888;
-            text-align: center;
-            margin-bottom: 30px;
-        }
     </style>
 </head>
 <body>
 
-    <div class="calculator-container">
-        <img src="U.GS.U.S-logo.png" id="secretLogo" alt="Unofficial Geek Squad U.GS.U.S. Logo" class="logo">
+    <img src="U.GS.U.S-logo.png" id="secretLogo" alt="Unofficial Geek Squad U.GS.U.S. Logo" class="logo">
+    <h1>U.GS.U.S. - Utilization System</h1>
 
-        <h1>U.GS.U.S. - Utilization System</h1>
+    <div class="main-layout">
+        
+        <div class="calculator-container">
+            <div class="input-group">
+                <label for="agentSelect" class="input-label">Select Agent</label>
+                <select id="agentSelect" autocomplete="off">
+                    <option value="" disabled selected>-- Choose Agent --</option>
+                    <option value="Alvan">Alvan</option>
+                    <option value="Alejandro">Alejandro</option>
+                    <option value="Justin">Justin</option>
+                    <option value="Josh">Josh</option>
+                    <option value="James">James</option>
+                    <option value="Marrion">Marrion</option>
+                    <option value="Rob">Rob</option>
+                    <option value="Diana">Diana</option>
+                    <option value="Kurt">Kurt</option>
+                    <option value="G">G</option>
+                    <option value="Arturo">Arturo</option>
+                </select>
+            </div>
 
-        <div class="input-group">
-            <label for="agentSelect" class="input-label">Select Agent</label>
-            <select id="agentSelect" autocomplete="off">
-                <option value="" disabled selected>-- Choose Agent --</option>
-                <option value="Alvan">Alvan</option>
-                <option value="Alejandro">Alejandro</option>
-                <option value="Justin">Justin</option>
-                <option value="Josh">Josh</option>
-                <option value="James">James</option>
-                <option value="Marrion">Marrion</option>
-                <option value="Rob">Rob</option>
-                <option value="Diana">Diana</option>
-                <option value="Kurt">Kurt</option>
-                <option value="G">G</option>
-                <option value="Arturo">Arturo</option>
-            </select>
-        </div>
+            <div class="input-group">
+                <label for="actionSelect" class="input-label">What are you doing?</label>
+                <select id="actionSelect" autocomplete="off">
+                    <option value="GOAL">1. Set Scheduled Target for the Week</option>
+                    <option value="PROGRESS">2. Log a Completed Work Order</option>
+                </select>
+            </div>
 
-        <div class="input-group">
-            <label for="actionSelect" class="input-label">What are you doing?</label>
-            <select id="actionSelect" autocomplete="off">
-                <option value="GOAL">1. Set Scheduled Target for the Week</option>
-                <option value="PROGRESS">2. Log Generated Minutes (Daily Progress)</option>
-            </select>
-        </div>
+            <div id="goalInputsWrapper">
+                <div class="input-group">
+                    <label for="hoursInput" class="input-label">Scheduled Hours</label>
+                    <input type="text" inputmode="numeric" id="hoursInput" placeholder="e.g., 35" autocomplete="off">
+                </div>
+                <p class="formula-text">Math: (Hours x 60) x 0.81 = Target Minutes</p>
+            </div>
 
-        <div class="input-group">
-            <label id="numberInputLabel" for="numberInput" class="input-label">Scheduled Hours</label>
-            <input type="text" inputmode="numeric" id="numberInput" placeholder="e.g., 35" autocomplete="off">
-        </div>
+            <div id="progressInputsWrapper" style="display: none;">
+                <div class="wo-calc-container">
+                    <div class="input-group" style="width: 100%;">
+                        <label for="woInput" class="input-label">Last 4 of Work Order</label>
+                        <input type="text" inputmode="numeric" id="woInput" placeholder="e.g., 1234" maxlength="4" autocomplete="off">
+                    </div>
+                    
+                    <label class="input-label" style="text-align: left;">Select Services (Up to 4)</label>
+                    <div class="wo-calc-row">
+                        <select class="service-select" autocomplete="off">
+                            <option value="0" data-tag="NONE">-- Tag 1 --</option>
+                            <option value="57" data-tag="GSDB/GSRD">GSDB / GSRD (57m)</option>
+                            <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
+                            <option value="25" data-tag="GSDI">GSDI (25m)</option>
+                            <option value="20" data-tag="GSOI/GSPW">GSOI / GSPW (20m)</option>
+                            <option value="18" data-tag="GSHW/GSHD">GSHW / GSHD (18m)</option>
+                            <option value="12" data-tag="GSSW">GSSW (12m)</option>
+                            <option value="4" data-tag="GSWUR">GS WUR (4m)</option>
+                        </select>
+                        <select class="service-select" autocomplete="off">
+                            <option value="0" data-tag="NONE">-- Tag 2 --</option>
+                            <option value="57" data-tag="GSDB/GSRD">GSDB / GSRD (57m)</option>
+                            <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
+                            <option value="25" data-tag="GSDI">GSDI (25m)</option>
+                            <option value="20" data-tag="GSOI/GSPW">GSOI / GSPW (20m)</option>
+                            <option value="18" data-tag="GSHW/GSHD">GSHW / GSHD (18m)</option>
+                            <option value="12" data-tag="GSSW">GSSW (12m)</option>
+                            <option value="4" data-tag="GSWUR">GS WUR (4m)</option>
+                        </select>
+                    </div>
+                    <div class="wo-calc-row">
+                        <select class="service-select" autocomplete="off">
+                            <option value="0" data-tag="NONE">-- Tag 3 --</option>
+                            <option value="57" data-tag="GSDB/GSRD">GSDB / GSRD (57m)</option>
+                            <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
+                            <option value="25" data-tag="GSDI">GSDI (25m)</option>
+                            <option value="20" data-tag="GSOI/GSPW">GSOI / GSPW (20m)</option>
+                            <option value="18" data-tag="GSHW/GSHD">GSHW / GSHD (18m)</option>
+                            <option value="12" data-tag="GSSW">GSSW (12m)</option>
+                            <option value="4" data-tag="GSWUR">GS WUR (4m)</option>
+                        </select>
+                        <select class="service-select" autocomplete="off">
+                            <option value="0" data-tag="NONE">-- Tag 4 --</option>
+                            <option value="57" data-tag="GSDB/GSRD">GSDB / GSRD (57m)</option>
+                            <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
+                            <option value="25" data-tag="GSDI">GSDI (25m)</option>
+                            <option value="20" data-tag="GSOI/GSPW">GSOI / GSPW (20m)</option>
+                            <option value="18" data-tag="GSHW/GSHD">GSHW / GSHD (18m)</option>
+                            <option value="12" data-tag="GSSW">GSSW (12m)</option>
+                            <option value="4" data-tag="GSWUR">GS WUR (4m)</option>
+                        </select>
+                    </div>
+                    
+                    <div id="calculatedTotalDisplay" class="wo-total-display">Calculated Minutes: 0</div>
+                </div>
+            </div>
 
-        <p id="formulaText" class="formula-text">Math: (Hours x 60) x 0.81 = Target Minutes</p>
+            <div class="fake-recaptcha">
+                <label class="fake-recaptcha-left" for="robotCheck">
+                    <input type="checkbox" id="robotCheck" autocomplete="off">
+                    <span>I'm not a robot</span>
+                </label>
+                <div class="fake-recaptcha-right">
+                    <div class="icon">↻</div>
+                    <div class="text">reCAPTCHA</div>
+                </div>
+            </div>
 
-        <div class="fake-recaptcha">
-            <label class="fake-recaptcha-left" for="robotCheck">
-                <input type="checkbox" id="robotCheck" autocomplete="off">
-                <span>I'm not a robot</span>
-            </label>
-            <div class="fake-recaptcha-right">
-                <div class="icon">↻</div>
-                <div class="text">reCAPTCHA</div>
+            <p id="lockWarning" class="lock-warning">Public inputs locked. Return to current week or use Admin Panel.</p>
+            <button id="submitBtn">Submit Data</button>
+
+            <div class="result-section">
+                <p id="resultOutput" class="result-output">Ready to sync...</p>
             </div>
         </div>
 
-        <p id="lockWarning" class="lock-warning">Public inputs locked. Return to current week or use Admin Panel.</p>
-        <button id="submitBtn">Submit Data</button>
-
-        <div class="result-section">
-            <p id="resultOutput" class="result-output">Ready to sync...</p>
+        <div class="cheatsheet-container">
+            <h3>Service Grid</h3>
+            <div class="cheatsheet-grid">
+                <span class="cs-tag">GSDB / GSRD</span> <span class="cs-min">57m</span>
+                <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Data Backup / Recovery</span>
+                
+                <span class="cs-tag">GSOSR</span> <span class="cs-min">49m</span>
+                <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Operating System Repair</span>
+                
+                <span class="cs-tag">GSDI</span> <span class="cs-min">25m</span>
+                <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Diagnostics</span>
+                
+                <span class="cs-tag">GSOI / GSPW</span> <span class="cs-min">20m</span>
+                <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">OS Install / Password Reset</span>
+                
+                <span class="cs-tag">GSHW / GSHD</span> <span class="cs-min">18m</span>
+                <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Hardware / Hard Drive</span>
+                
+                <span class="cs-tag">GSSW</span> <span class="cs-min">12m</span>
+                <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Software Install / Repair</span>
+                
+                <span class="cs-tag">GS WUR</span> <span class="cs-min">4m</span>
+                <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Whole Unit Replacement</span>
+            </div>
         </div>
+
     </div>
 
     <div class="dashboard">
@@ -601,8 +549,7 @@
             <div class="calendar-grid-header">
                 <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
             </div>
-            <div id="calendarGrid" class="calendar-grid">
-                </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
             <button id="calCancelBtn" class="modal-btn modal-cancel">Cancel</button>
         </div>
     </div>
@@ -610,7 +557,7 @@
     <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v<span id="appVersionDisplay"></span></div>
 
     <script>
-        const APP_VERSION = "4.11";
+        const APP_VERSION = "4.12";
 
         const _supabase = supabase.createClient(
             'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -624,14 +571,25 @@
             const submitBtn = document.getElementById('submitBtn');
             const agentSelect = document.getElementById('agentSelect');
             const actionSelect = document.getElementById('actionSelect');
-            const numberInputLabel = document.getElementById('numberInputLabel');
-            const numberInput = document.getElementById('numberInput');
-            const formulaText = document.getElementById('formulaText');
             const robotCheck = document.getElementById('robotCheck');
             const resultOutput = document.getElementById('resultOutput');
             const lockWarning = document.getElementById('lockWarning');
             const agentListElement = document.getElementById('agentList');
             
+            // Toggle Wrappers
+            const goalInputsWrapper = document.getElementById('goalInputsWrapper');
+            const progressInputsWrapper = document.getElementById('progressInputsWrapper');
+            
+            // Goal Inputs
+            const hoursInput = document.getElementById('hoursInput');
+            
+            // Progress Inputs (WO Calc)
+            const woInput = document.getElementById('woInput');
+            const serviceSelects = document.querySelectorAll('.service-select');
+            const calculatedTotalDisplay = document.getElementById('calculatedTotalDisplay');
+            let currentCalculatedMinutes = 0;
+            
+            // Week Controls
             const weekLabel = document.getElementById('weekLabel');
             const prevWeekBtn = document.getElementById('prevWeekBtn');
             const nextWeekBtn = document.getElementById('nextWeekBtn');
@@ -652,11 +610,9 @@
             const secretCodeInput = document.getElementById('secretCodeInput');
             const authSubmitBtn = document.getElementById('authSubmitBtn');
             const authCancelBtn = document.getElementById('authCancelBtn');
-            
             const adminPanel = document.getElementById('adminPanel');
             const closeAdminBtn = document.getElementById('closeAdminBtn');
             const resetDataBtn = document.getElementById('resetDataBtn');
-            
             const adminAgentSelect = document.getElementById('adminAgentSelect');
             const adminActionSelect = document.getElementById('adminActionSelect');
             const adminValueInput = document.getElementById('adminValueInput');
@@ -680,7 +636,6 @@
 
             const actualCurrentMonday = getMonday(new Date());
             const actualCurrentWeekString = formatDateString(actualCurrentMonday);
-            
             let selectedMonday = new Date(actualCurrentMonday);
             let selectedWeekString = actualCurrentWeekString;
             let currentCalViewDate = new Date(selectedMonday);
@@ -691,40 +646,41 @@
 
                 if (selectedWeekString !== actualCurrentWeekString) {
                     submitBtn.disabled = true;
-                    numberInput.disabled = true;
+                    hoursInput.disabled = true;
+                    woInput.disabled = true;
+                    serviceSelects.forEach(s => s.disabled = true);
                     robotCheck.disabled = true;
                     lockWarning.style.display = "block";
                 } else {
                     submitBtn.disabled = false;
-                    numberInput.disabled = false;
+                    hoursInput.disabled = false;
+                    woInput.disabled = false;
+                    serviceSelects.forEach(s => s.disabled = false);
                     robotCheck.disabled = false;
                     lockWarning.style.display = "none";
                 }
-
                 fetchDashboardData();
             }
 
-            prevWeekBtn.addEventListener('click', () => {
-                selectedMonday.setDate(selectedMonday.getDate() - 7);
-                updateWeekUI();
-            });
+            prevWeekBtn.addEventListener('click', () => { selectedMonday.setDate(selectedMonday.getDate() - 7); updateWeekUI(); });
+            nextWeekBtn.addEventListener('click', () => { selectedMonday.setDate(selectedMonday.getDate() + 7); updateWeekUI(); });
+            currentWeekBtn.addEventListener('click', () => { selectedMonday = new Date(actualCurrentMonday); updateWeekUI(); });
 
-            nextWeekBtn.addEventListener('click', () => {
-                selectedMonday.setDate(selectedMonday.getDate() + 7);
-                updateWeekUI();
-            });
-
-            currentWeekBtn.addEventListener('click', () => {
-                selectedMonday = new Date(actualCurrentMonday);
-                updateWeekUI();
-            });
+            // --- SERVICE CALCULATOR LOGIC ---
+            function updateCalculatedMinutes() {
+                currentCalculatedMinutes = 0;
+                serviceSelects.forEach(select => {
+                    currentCalculatedMinutes += parseInt(select.value);
+                });
+                calculatedTotalDisplay.textContent = `Calculated Minutes: ${currentCalculatedMinutes}`;
+            }
+            serviceSelects.forEach(select => select.addEventListener('change', updateCalculatedMinutes));
 
             // --- CUSTOM CALENDAR LOGIC ---
             function renderCalendar() {
                 const year = currentCalViewDate.getFullYear();
                 const month = currentCalViewDate.getMonth();
                 calMonthYear.textContent = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-                
                 calendarGrid.innerHTML = '';
                 
                 const firstDay = new Date(year, month, 1).getDay();
@@ -737,7 +693,6 @@
                 for (let i = 0; i < 6; i++) {
                     const weekRow = document.createElement('div');
                     weekRow.className = 'calendar-week';
-                    
                     let rowMondayYear, rowMondayMonth, rowMondayDate;
                     
                     for (let j = 0; j < 7; j++) {
@@ -758,17 +713,14 @@
                             cellDate = new Date(year, month, dayCell.textContent);
                         }
                         
-                        // J=1 is Monday in a Sunday-Saturday grid. We strictly pull the Monday of this row.
                         if (j === 1) { 
                             rowMondayYear = cellDate.getFullYear();
                             rowMondayMonth = cellDate.getMonth();
                             rowMondayDate = cellDate.getDate();
                         }
-                        
                         weekRow.appendChild(dayCell);
                     }
                     
-                    // Safely pass integers without timezone strings breaking it
                     weekRow.dataset.y = rowMondayYear;
                     weekRow.dataset.m = rowMondayMonth;
                     weekRow.dataset.d = rowMondayDate;
@@ -784,29 +736,15 @@
                 }
             }
 
-            calendarBtn.addEventListener('click', () => {
-                currentCalViewDate = new Date(selectedMonday);
-                renderCalendar();
-                calendarModal.style.display = 'flex';
-            });
-
-            calPrevMonth.addEventListener('click', () => {
-                currentCalViewDate.setMonth(currentCalViewDate.getMonth() - 1);
-                renderCalendar();
-            });
-
-            calNextMonth.addEventListener('click', () => {
-                currentCalViewDate.setMonth(currentCalViewDate.getMonth() + 1);
-                renderCalendar();
-            });
-
-            calCancelBtn.addEventListener('click', () => {
-                calendarModal.style.display = 'none';
-            });
+            calendarBtn.addEventListener('click', () => { currentCalViewDate = new Date(selectedMonday); renderCalendar(); calendarModal.style.display = 'flex'; });
+            calPrevMonth.addEventListener('click', () => { currentCalViewDate.setMonth(currentCalViewDate.getMonth() - 1); renderCalendar(); });
+            calNextMonth.addEventListener('click', () => { currentCalViewDate.setMonth(currentCalViewDate.getMonth() + 1); renderCalendar(); });
+            calCancelBtn.addEventListener('click', () => { calendarModal.style.display = 'none'; });
 
             // --- INPUT SANITIZERS ---
             function restrictToWholeNumbers(e) { e.target.value = e.target.value.replace(/[^0-9]/g, ''); }
-            numberInput.addEventListener('input', restrictToWholeNumbers);
+            hoursInput.addEventListener('input', restrictToWholeNumbers);
+            woInput.addEventListener('input', restrictToWholeNumbers);
             adminValueInput.addEventListener('input', restrictToWholeNumbers);
 
             // --- EASTER EGG ---
@@ -844,13 +782,11 @@
             // --- MAIN UI TOGGLE ---
             actionSelect.addEventListener('change', () => {
                 if (actionSelect.value === 'GOAL') {
-                    numberInputLabel.textContent = "Scheduled Hours";
-                    numberInput.placeholder = "e.g., 35";
-                    formulaText.textContent = "Math: (Hours x 60) x 0.81 = Target Minutes";
+                    goalInputsWrapper.style.display = 'block';
+                    progressInputsWrapper.style.display = 'none';
                 } else {
-                    numberInputLabel.textContent = "Minutes Generated Today";
-                    numberInput.placeholder = "e.g., 240";
-                    formulaText.textContent = "Raw minutes generated from completed tags.";
+                    goalInputsWrapper.style.display = 'none';
+                    progressInputsWrapper.style.display = 'block';
                 }
             });
 
@@ -864,6 +800,7 @@
 
                 const precinctData = {};
                 data.forEach(log => {
+                    // Split the string. Because we hacked the DB, it looks like "Josh|PROGRESS|WO:1234|GSDI+GSSW"
                     const parts = log.agent_name.split('|');
                     const realName = parts[0];
                     const logType = parts[1] || 'GOAL';
@@ -905,19 +842,45 @@
             async function submitData() {
                 const selectedAgent = agentSelect.value;
                 const action = actionSelect.value;
-                const numVal = numberInput.value;
 
-                if (!selectedAgent || !robotCheck.checked || numVal === "" || isNaN(numVal)) {
-                    resultOutput.textContent = "Please fill out all fields and check the box.";
+                if (!selectedAgent || !robotCheck.checked) {
+                    resultOutput.textContent = "Please select an agent and verify reCAPTCHA.";
                     resultOutput.style.color = "#d32f2f";
                     return;
                 }
 
+                let finalMinutes = 0;
+                let dbAgentName = "";
+
+                if (action === 'GOAL') {
+                    if (hoursInput.value === "") {
+                        resultOutput.textContent = "Please enter scheduled hours."; resultOutput.style.color = "#d32f2f"; return;
+                    }
+                    finalMinutes = Math.round((parseInt(hoursInput.value) * 60) * 0.81);
+                    dbAgentName = `${selectedAgent}|GOAL`;
+                } else {
+                    if (woInput.value.length !== 4) {
+                        resultOutput.textContent = "Please enter the last 4 digits of the Work Order."; resultOutput.style.color = "#d32f2f"; return;
+                    }
+                    if (currentCalculatedMinutes === 0) {
+                        resultOutput.textContent = "Please select at least one completed service."; resultOutput.style.color = "#d32f2f"; return;
+                    }
+                    
+                    // Grab the actual text names of the tags they selected
+                    let selectedTags = [];
+                    serviceSelects.forEach(s => {
+                        if (s.value !== "0") {
+                            selectedTags.push(s.options[s.selectedIndex].dataset.tag);
+                        }
+                    });
+
+                    finalMinutes = currentCalculatedMinutes;
+                    // MAGIC DB HACK: Saving the WO and Tags directly into the text field so the cloud stores it without needing new columns!
+                    dbAgentName = `${selectedAgent}|PROGRESS|WO:${woInput.value}|${selectedTags.join('+')}`;
+                }
+
                 submitBtn.disabled = true;
                 submitBtn.textContent = "Saving...";
-
-                let finalMinutes = (action === 'GOAL') ? Math.round((parseInt(numVal) * 60) * 0.81) : parseInt(numVal);
-                const dbAgentName = `${selectedAgent}|${action}`;
 
                 const { error } = await _supabase.from('utilization_logs').insert([
                     { agent_name: dbAgentName, target_minutes: finalMinutes, week_of: actualCurrentWeekString }
@@ -931,9 +894,15 @@
                 }
 
                 resultOutput.style.color = "#4CAF50"; 
-                resultOutput.textContent = `Success! Saved data for ${selectedAgent}.`;
+                resultOutput.textContent = `Success! Logged ${finalMinutes} minutes for ${selectedAgent}.`;
+                
+                // Reset form
                 robotCheck.checked = false;
-                numberInput.value = '';
+                hoursInput.value = '';
+                woInput.value = '';
+                serviceSelects.forEach(s => s.value = "0");
+                updateCalculatedMinutes();
+                
                 fetchDashboardData();
             }
 
@@ -946,11 +915,16 @@
                     adminFeedback.textContent = "Please enter valid total minutes."; return;
                 }
 
+                // For the admin overwrite, we just use the raw type without WO data so it behaves like a master value.
                 const dbAgentName = `${targetAgent}|${targetAction}`;
                 adminOverrideBtn.textContent = "Updating...";
                 adminOverrideBtn.disabled = true;
 
-                await _supabase.from('utilization_logs').delete().eq('week_of', selectedWeekString).eq('agent_name', dbAgentName);
+                // Deletes ALL records that start with the agent's name for that week, sweeping up the individual WO logs
+                await _supabase.from('utilization_logs').delete()
+                    .eq('week_of', selectedWeekString)
+                    .like('agent_name', `${targetAgent}|${targetAction}%`);
+
                 const { error } = await _supabase.from('utilization_logs').insert([
                     { agent_name: dbAgentName, target_minutes: parseInt(exactMinutes), week_of: selectedWeekString }
                 ]);
@@ -979,7 +953,9 @@
             }
 
             submitBtn.addEventListener('click', submitData);
-            numberInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !submitBtn.disabled) submitData(); });
+            hoursInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !submitBtn.disabled) submitData(); });
+            woInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !submitBtn.disabled) submitData(); });
+            
             adminOverrideBtn.addEventListener('click', forceUpdateAgent);
             resetDataBtn.addEventListener('click', manualReset);
 
