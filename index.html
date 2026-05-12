@@ -9,21 +9,23 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             margin: 0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
             min-height: 100vh;
         }
 
         .calculator-container {
             background-color: #ffffff;
-            width: 90%;
+            width: 100%;
             max-width: 600px;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
+            margin-bottom: 20px;
+            box-sizing: border-box;
         }
 
         .logo {
@@ -53,7 +55,7 @@
             margin-bottom: 5px;
         }
 
-        input[type="number"] {
+        input[type="number"], select {
             width: 100%;
             padding: 10px;
             font-size: 16px;
@@ -80,7 +82,6 @@
             margin: 0 auto 20px auto;
             width: 80%;
             box-sizing: border-box;
-            box-shadow: 0px 2px 4px rgba(0,0,0,0.05);
         }
 
         .fake-recaptcha-left {
@@ -97,7 +98,6 @@
         }
 
         .fake-recaptcha-left span {
-            font-family: "Roboto", Arial, sans-serif;
             font-size: 14px;
             color: #555555;
         }
@@ -106,12 +106,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: "Roboto", Arial, sans-serif;
         }
 
         .fake-recaptcha-right .icon {
             font-size: 20px;
-            line-height: 1;
             color: #4a90e2;
             margin-bottom: 2px;
         }
@@ -130,6 +128,8 @@
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.3s;
+            width: 80%;
+            margin-bottom: 10px;
         }
 
         button:hover {
@@ -137,20 +137,57 @@
         }
 
         .result-section {
-            margin-top: 30px;
-        }
-
-        .result-label {
-            font-size: 16px;
-            color: #333333;
-            margin-bottom: 10px;
-            font-weight: bold;
+            margin-top: 20px;
         }
 
         .result-output {
             font-size: 18px;
             color: #666666;
             font-style: italic;
+        }
+
+        /* Dashboard Styling */
+        .dashboard {
+            width: 100%;
+            max-width: 600px;
+            background-color: #ffffff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+
+        .dashboard h2 {
+            font-size: 20px;
+            margin-top: 0;
+            border-bottom: 2px solid #f57c00;
+            padding-bottom: 10px;
+        }
+
+        .agent-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .agent-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eeeeee;
+            font-size: 16px;
+        }
+
+        .agent-item:last-child {
+            border-bottom: none;
+        }
+
+        .agent-name {
+            font-weight: bold;
+        }
+
+        .agent-stats {
+            color: #555555;
         }
 
         .footer-note {
@@ -166,7 +203,25 @@
     <div class="calculator-container">
         <img src="U.GS.U.C-logo.png" alt="Unofficial Geek Squad U.GS.U.C. Logo" class="logo">
 
-        <h1>U.GS.U.C. - Utilization Goal Calculator</h1>
+        <h1>U.GS.U.C. - Utilization Goal</h1>
+
+        <div class="input-group">
+            <label for="agentSelect" class="input-label">Select Agent</label>
+            <select id="agentSelect" autocomplete="off">
+                <option value="" disabled selected>-- Choose Agent --</option>
+                <option value="Alvan">Alvan</option>
+                <option value="Alejandro">Alejandro</option>
+                <option value="Justin">Justin</option>
+                <option value="Josh">Josh</option>
+                <option value="James">James</option>
+                <option value="Marrion">Marrion</option>
+                <option value="Rob">Rob</option>
+                <option value="Diana">Diana</option>
+                <option value="Kurt">Kurt</option>
+                <option value="G">G</option>
+                <option value="Arturo">Arturo</option>
+            </select>
+        </div>
 
         <div class="input-group">
             <label for="hoursWorked" class="input-label">Hours Worked</label>
@@ -186,39 +241,83 @@
             </div>
         </div>
 
-        <button id="calculateBtn">Calculate Goal</button>
+        <button id="calculateBtn">Calculate & Log Target</button>
 
         <div class="result-section">
-            <p class="result-label">Result:</p>
-            <p id="resultOutput" class="result-output">Goal for 8 hours: 389 minutes</p>
+            <p id="resultOutput" class="result-output">Awaiting calculation...</p>
         </div>
     </div>
 
-    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v0.9</div>
+    <div class="dashboard">
+        <h2>Precinct Totals (Target Minutes)</h2>
+        <ul class="agent-list" id="agentList">
+            </ul>
+    </div>
+
+    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v0.2</div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const calculateBtn = document.getElementById('calculateBtn');
+            const agentSelect = document.getElementById('agentSelect');
             const hoursInput = document.getElementById('hoursWorked');
             const robotCheck = document.getElementById('robotCheck');
             const resultOutput = document.getElementById('resultOutput');
+            const agentListElement = document.getElementById('agentList');
+
+            // Load saved data from localStorage, or start with an empty object if none exists
+            let precinctData = JSON.parse(localStorage.getItem('ugds_precinct_data')) || {};
 
             // Force clear the inputs and checkbox on page load/refresh
             hoursInput.value = '';
+            agentSelect.selectedIndex = 0;
             robotCheck.checked = false;
             
-            // Reset the text just in case the browser cached an old error state
-            resultOutput.textContent = 'Goal for 8 hours: 389 minutes';
-            resultOutput.style.color = '#666666';
+            // Render the dashboard immediately on load
+            updateDashboard();
+
+            function updateDashboard() {
+                agentListElement.innerHTML = ''; // Clear current list
+
+                // Sort agents alphabetically before displaying
+                const sortedAgents = Object.keys(precinctData).sort();
+
+                if (sortedAgents.length === 0) {
+                    agentListElement.innerHTML = '<li class="agent-item" style="color:#999; justify-content:center;">No data logged yet.</li>';
+                    return;
+                }
+
+                sortedAgents.forEach(agent => {
+                    const totalMinutes = precinctData[agent];
+                    const displayHours = Math.floor(totalMinutes / 60);
+                    const displayMinutes = totalMinutes % 60;
+
+                    const li = document.createElement('li');
+                    li.className = 'agent-item';
+                    
+                    li.innerHTML = `
+                        <span class="agent-name">${agent}</span>
+                        <span class="agent-stats">${totalMinutes} min (~${displayHours}h ${displayMinutes}m)</span>
+                    `;
+                    agentListElement.appendChild(li);
+                });
+            }
 
             function calculateGoal() {
+                const selectedAgent = agentSelect.value;
+                const hoursVal = hoursInput.value;
+
+                if (!selectedAgent) {
+                    resultOutput.textContent = "Please select an agent first!";
+                    resultOutput.style.color = "#d32f2f";
+                    return;
+                }
+
                 if (!robotCheck.checked) {
                     resultOutput.textContent = "Security check: Please verify you are not a robot!";
                     resultOutput.style.color = "#d32f2f"; 
                     return;
                 }
-
-                const hoursVal = hoursInput.value;
 
                 if (hoursVal === "" || isNaN(hoursVal) || hoursVal < 0) {
                     resultOutput.textContent = "Please enter a valid number of hours.";
@@ -227,11 +326,27 @@
                 }
 
                 const hours = parseFloat(hoursVal);
-                const totalMinutes = (hours * 60) * 0.81;
-                const roundedMinutes = Math.round(totalMinutes);
+                const targetMinutes = Math.round((hours * 60) * 0.81);
 
-                resultOutput.style.color = "#666666"; 
-                resultOutput.textContent = `Goal for ${hours} hours: ${roundedMinutes} minutes`;
+                // Add to the agent's running total in our data object
+                if (!precinctData[selectedAgent]) {
+                    precinctData[selectedAgent] = 0;
+                }
+                precinctData[selectedAgent] += targetMinutes;
+
+                // Save the updated object back into the browser's localStorage
+                localStorage.setItem('ugds_precinct_data', JSON.stringify(precinctData));
+
+                // Show success message
+                resultOutput.style.color = "#4CAF50"; // Green for success
+                resultOutput.textContent = `Logged ${targetMinutes} target minutes for ${selectedAgent}.`;
+
+                // Update the dashboard UI
+                updateDashboard();
+                
+                // Uncheck robot to force it for the next entry
+                robotCheck.checked = false;
+                hoursInput.value = '';
             }
 
             calculateBtn.addEventListener('click', calculateGoal);
