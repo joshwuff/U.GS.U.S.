@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>U.GS.U.C. - Utilization Goal Calculator</title>
     <style>
-        /*
-         * CSS Stylesheet
-         * Replicates the colors, centering, and layout seen in image_14.png
-         */
         body {
-            /* Mimics the office background of the monitor */
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             margin: 0;
@@ -20,7 +15,6 @@
             min-height: 100vh;
         }
 
-        /* The main white box containing the app */
         .calculator-container {
             background-color: #ffffff;
             width: 90%;
@@ -31,7 +25,6 @@
             text-align: center;
         }
 
-        /* The complex composite logo from image_13.png */
         .logo {
             display: block;
             margin: 0 auto 30px;
@@ -39,7 +32,6 @@
             height: auto;
         }
 
-        /* Main Title */
         h1 {
             font-size: 24px;
             font-weight: bold;
@@ -47,7 +39,6 @@
             margin-bottom: 30px;
         }
 
-        /* Input section styling */
         .input-group {
             width: 80%;
             margin: 0 auto 20px;
@@ -67,19 +58,17 @@
             font-size: 16px;
             border: 1px solid #cccccc;
             border-radius: 4px;
-            box-sizing: border-box; /* Crucial for padding to work correctly */
+            box-sizing: border-box; 
         }
 
-        /* Formula text styling */
         .formula-text {
             font-size: 14px;
             color: #333333;
             margin-bottom: 30px;
         }
 
-        /* Primary action button (Orange) */
         button {
-            background-color: #f57c00; /* Distinctive Orange from image_13.png */
+            background-color: #f57c00; 
             color: #ffffff;
             border: none;
             padding: 12px 24px;
@@ -93,7 +82,6 @@
             background-color: #e66a00;
         }
 
-        /* Result section styling */
         .result-section {
             margin-top: 30px;
         }
@@ -105,11 +93,6 @@
             font-weight: bold;
         }
 
-        /*
-         * The Result Text.
-         * Grey and italicized, exactly as in image_14.png.
-         * This will update via JavaScript.
-         */
         .result-output {
             font-size: 18px;
             color: #666666;
@@ -120,7 +103,7 @@
 <body>
 
     <div class="calculator-container">
-        <img src="https://i.imgur.com/Kj75lGj.png" alt="Unofficial Geek Squad U.GS.U.C. Logo" class="logo">
+        <img src="U.GS.U.C-logo.png" alt="Unofficial Geek Squad U.GS.U.C. Logo" class="logo">
 
         <h1>U.GS.U.C. - Utilization Goal Calculator</h1>
 
@@ -140,20 +123,14 @@
     </div>
 
     <script>
-        /*
-         * JavaScript Functionality
-         * Handles user input, validation, and real-time calculation.
-         */
         document.addEventListener('DOMContentLoaded', () => {
             const calculateBtn = document.getElementById('calculateBtn');
             const hoursInput = document.getElementById('hoursWorked');
             const resultOutput = document.getElementById('resultOutput');
 
-            // Function to perform the calculation and update the output
             function calculateGoal() {
                 const hoursVal = hoursInput.value;
 
-                // Validation: check if the input is a valid number
                 if (hoursVal === "" || isNaN(hoursVal) || hoursVal < 0) {
                     resultOutput.textContent = "Please enter a valid number of hours.";
                     resultOutput.style.color = "red";
@@ -161,23 +138,15 @@
                 }
 
                 const hours = parseFloat(hoursVal);
-
-                // Replicating the formula from image_11.png: (hours x 60) x 0.81
                 const totalMinutes = (hours * 60) * 0.81;
-
-                // Rounding to the nearest whole minute for a clean target.
                 const roundedMinutes = Math.round(totalMinutes);
 
-                // Formatting and updating the output text.
-                // Ensures the output matches the "Goal for X hours: Y minutes" pattern.
-                resultOutput.style.color = "#666666"; // Restore grey color
+                resultOutput.style.color = "#666666"; 
                 resultOutput.textContent = `Goal for ${hours} hours: ${roundedMinutes} minutes`;
             }
 
-            // Attaching the event listener to the button
             calculateBtn.addEventListener('click', calculateGoal);
 
-            // Optional: Also allow calculation by pressing 'Enter' in the input box
             hoursInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     calculateGoal();
