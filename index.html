@@ -61,7 +61,17 @@
             font-weight: bold;
         }
 
-        input[type="number"], input[type="password"], select {
+        /* Prevent the up/down arrows in standard number inputs for a cleaner look */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="text"], input[type="number"], input[type="password"], select {
             width: 100%;
             padding: 10px;
             font-size: 16px;
@@ -385,7 +395,7 @@
 
         <div class="input-group">
             <label id="numberInputLabel" for="numberInput" class="input-label">Scheduled Hours</label>
-            <input type="number" id="numberInput" placeholder="e.g., 35" autocomplete="off">
+            <input type="text" inputmode="numeric" id="numberInput" placeholder="e.g., 35" autocomplete="off">
         </div>
 
         <p id="formulaText" class="formula-text">Math: (Hours x 60) x 0.81 = Target Minutes</p>
@@ -441,7 +451,7 @@
                 <option value="GOAL">Target</option>
                 <option value="PROGRESS">Progress</option>
             </select>
-            <input type="number" id="adminValueInput" placeholder="Total Mins" autocomplete="off">
+            <input type="text" inputmode="numeric" id="adminValueInput" placeholder="Total Mins" autocomplete="off">
         </div>
         <button id="adminOverrideBtn" class="admin-action-btn" style="background-color: #333;">Force Update Agent</button>
         <p id="adminFeedback" style="font-size: 12px; color: #d32f2f; margin-top: 5px; height: 14px;"></p>
@@ -468,7 +478,7 @@
 
     <script>
         // --- APP VERSION MANAGER ---
-        const APP_VERSION = "v4.1 (Dynamic Versioning)";
+        const APP_VERSION = "v4.2 (Input Sanitization)";
 
         const _supabase = supabase.createClient(
             'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -476,7 +486,6 @@
         );
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Set the version string in the footer
             document.getElementById('appVersionDisplay').textContent = APP_VERSION;
 
             // Main App Elements
@@ -508,7 +517,15 @@
             const adminOverrideBtn = document.getElementById('adminOverrideBtn');
             const adminFeedback = document.getElementById('adminFeedback');
 
-            // --- EASTER EGG LOGIC (5 CLICKS TO OPEN MODAL) ---
+            // --- INPUT SANITIZERS (NEW IN v4.2) ---
+            // This forces the input box to instantly delete decimals, letters, and minus signs
+            function restrictToWholeNumbers(e) {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            }
+            numberInput.addEventListener('input', restrictToWholeNumbers);
+            adminValueInput.addEventListener('input', restrictToWholeNumbers);
+
+            // --- EASTER EGG LOGIC ---
             let logoClickCount = 0;
             let logoClickTimer;
 
@@ -519,7 +536,7 @@
 
                 if (logoClickCount === 5) {
                     logoClickCount = 0; 
-                    passwordModal.style.display = "flex"; // Show modal
+                    passwordModal.style.display = "flex";
                     secretCodeInput.focus();
                 }
             });
@@ -529,7 +546,7 @@
                 if (secretCodeInput.value === "Agents4ssembl3") {
                     passwordModal.style.display = "none";
                     secretCodeInput.value = "";
-                    adminPanel.style.display = "block"; // Reveal panel
+                    adminPanel.style.display = "block";
                     window.scrollTo(0, document.body.scrollHeight);
                 } else {
                     alert("Access Denied.");
@@ -546,7 +563,6 @@
                 secretCodeInput.value = "";
             });
 
-            // Close Admin Panel Button
             closeAdminBtn.addEventListener('click', () => {
                 adminPanel.style.display = "none";
             });
@@ -649,7 +665,7 @@
                 const action = actionSelect.value;
                 const numVal = numberInput.value;
 
-                if (!selectedAgent || !robotCheck.checked || numVal === "" || isNaN(numVal) || numVal < 0) {
+                if (!selectedAgent || !robotCheck.checked || numVal === "" || isNaN(numVal)) {
                     resultOutput.textContent = "Please fill out all fields and check the box.";
                     resultOutput.style.color = "#d32f2f";
                     return;
@@ -658,7 +674,7 @@
                 submitBtn.disabled = true;
                 submitBtn.textContent = "Saving...";
 
-                let finalMinutes = (action === 'GOAL') ? Math.round((parseFloat(numVal) * 60) * 0.81) : parseInt(numVal);
+                let finalMinutes = (action === 'GOAL') ? Math.round((parseInt(numVal) * 60) * 0.81) : parseInt(numVal);
                 const dbAgentName = `${selectedAgent}|${action}`;
 
                 const { error } = await _supabase.from('utilization_logs').insert([
@@ -688,7 +704,7 @@
                 const targetAction = adminActionSelect.value;
                 const exactMinutes = adminValueInput.value;
 
-                if (exactMinutes === "" || isNaN(exactMinutes) || exactMinutes < 0) {
+                if (exactMinutes === "" || isNaN(exactMinutes)) {
                     adminFeedback.textContent = "Please enter valid total minutes.";
                     return;
                 }
@@ -697,12 +713,10 @@
                 adminOverrideBtn.textContent = "Updating...";
                 adminOverrideBtn.disabled = true;
 
-                // Step 1: Delete all old records for this specific agent + action for the week
                 await _supabase.from('utilization_logs').delete()
                     .eq('week_of', currentWeekString)
                     .eq('agent_name', dbAgentName);
 
-                // Step 2: Insert one clean master record with the new absolute total
                 const { error } = await _supabase.from('utilization_logs').insert([
                     { agent_name: dbAgentName, target_minutes: parseInt(exactMinutes), week_of: currentWeekString }
                 ]);
@@ -718,7 +732,6 @@
                     adminValueInput.value = '';
                     fetchDashboardData();
                     
-                    // Reset feedback text color back to red after a few seconds
                     setTimeout(() => { adminFeedback.textContent = ""; adminFeedback.style.color = "#d32f2f"; }, 3000);
                 }
             }
