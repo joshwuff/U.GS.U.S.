@@ -31,7 +31,6 @@
             box-sizing: border-box;
         }
 
-        /* Notice we keep the cursor default so the secret isn't obvious */
         .logo {
             display: block;
             margin: 0 auto 30px;
@@ -62,7 +61,7 @@
             font-weight: bold;
         }
 
-        input[type="number"], select {
+        input[type="number"], input[type="password"], select {
             width: 100%;
             padding: 10px;
             font-size: 16px;
@@ -223,7 +222,6 @@
             font-size: 14px;
         }
 
-        /* Progress Bar Styles */
         .progress-bar-bg {
             background-color: #e0e0e0;
             border-radius: 4px;
@@ -238,7 +236,46 @@
             transition: width 0.5s ease-in-out;
         }
 
-        /* --- NEW ADMIN PANEL STYLES --- */
+        /* --- CUSTOM PASSWORD MODAL --- */
+        .modal-overlay {
+            display: none; 
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .modal-btn {
+            background-color: #333;
+            color: white;
+            margin-top: 15px;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+        }
+        
+        .modal-btn:hover { background-color: #000; }
+        .modal-cancel { background-color: #ccc; color: #333; margin-top: 5px; }
+        .modal-cancel:hover { background-color: #aaa; }
+
+        /* --- ADMIN PANEL STYLES --- */
         .admin-panel {
             width: 100%;
             max-width: 600px;
@@ -249,27 +286,61 @@
             box-sizing: border-box;
             text-align: center;
             margin-bottom: 20px;
+            position: relative; /* So the X button can be absolute inside it */
         }
+
+        .close-admin-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #d32f2f;
+            cursor: pointer;
+        }
+
+        .close-admin-btn:hover { color: #b71c1c; }
 
         .admin-panel h3 {
             margin-top: 0;
             color: #c62828;
+            margin-bottom: 20px;
         }
 
-        .reset-btn-admin {
+        .admin-divider {
+            border: 0;
+            height: 1px;
+            background: #ef5350;
+            margin: 20px 0;
+            opacity: 0.5;
+        }
+
+        .admin-edit-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .admin-edit-group select, .admin-edit-group input {
+            flex: 1;
+            min-width: 120px;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .admin-action-btn {
             background-color: #d32f2f;
             color: white;
             border: none;
             padding: 10px 20px;
-            font-size: 16px;
+            font-size: 14px;
             border-radius: 4px;
             cursor: pointer;
-            width: auto;
+            width: 100%;
         }
         
-        .reset-btn-admin:hover {
-            background-color: #b71c1c;
-        }
+        .admin-action-btn:hover { background-color: #b71c1c; }
 
         .footer-note {
             font-size: 12px;
@@ -348,14 +419,52 @@
     </div>
 
     <div id="adminPanel" class="admin-panel" style="display: none;">
-        <h3>🛡️ Precinct Administrator Override</h3>
-        <p style="font-size: 14px; color: #555; margin-bottom: 20px;">
-            Warning: Wiping the database deletes all goals and progress for the current week. This cannot be undone.
+        <span class="close-admin-btn" id="closeAdminBtn">✖</span>
+        <h3>🛡️ Precinct Admin Override</h3>
+        
+        <div style="text-align: left; font-size: 14px; font-weight: bold; color: #555; margin-bottom: 5px;">Edit Agent Value:</div>
+        <div class="admin-edit-group">
+            <select id="adminAgentSelect" autocomplete="off">
+                <option value="Alvan">Alvan</option>
+                <option value="Alejandro">Alejandro</option>
+                <option value="Justin">Justin</option>
+                <option value="Josh" selected>Josh</option>
+                <option value="James">James</option>
+                <option value="Marrion">Marrion</option>
+                <option value="Rob">Rob</option>
+                <option value="Diana">Diana</option>
+                <option value="Kurt">Kurt</option>
+                <option value="G">G</option>
+                <option value="Arturo">Arturo</option>
+            </select>
+            <select id="adminActionSelect" autocomplete="off">
+                <option value="GOAL">Target</option>
+                <option value="PROGRESS">Progress</option>
+            </select>
+            <input type="number" id="adminValueInput" placeholder="Total Mins" autocomplete="off">
+        </div>
+        <button id="adminOverrideBtn" class="admin-action-btn" style="background-color: #333;">Force Update Agent</button>
+        <p id="adminFeedback" style="font-size: 12px; color: #d32f2f; margin-top: 5px; height: 14px;"></p>
+
+        <hr class="admin-divider">
+
+        <p style="font-size: 13px; color: #555; margin-bottom: 10px;">
+            Warning: Wiping the database deletes all goals and progress for the current week.
         </p>
-        <button id="resetDataBtn" class="reset-btn-admin">Wipe Current Week Data</button>
+        <button id="resetDataBtn" class="admin-action-btn">Wipe Current Week Data</button>
     </div>
 
-    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v3.0 (Secure)</div>
+    <div id="passwordModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>SECURITY OVERRIDE</h3>
+            <p style="font-size: 14px; color: #666; margin-bottom: 15px;">Enter Authorization Code:</p>
+            <input type="password" id="secretCodeInput" placeholder="********" autocomplete="off">
+            <button id="authSubmitBtn" class="modal-btn">Access System</button>
+            <button id="authCancelBtn" class="modal-btn modal-cancel">Cancel</button>
+        </div>
+    </div>
+
+    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v4.0 (Admin Tools)</div>
 
     <script>
         const _supabase = supabase.createClient(
@@ -364,8 +473,8 @@
         );
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Main App Elements
             const submitBtn = document.getElementById('submitBtn');
-            const resetDataBtn = document.getElementById('resetDataBtn');
             const agentSelect = document.getElementById('agentSelect');
             const actionSelect = document.getElementById('actionSelect');
             const numberInputLabel = document.getElementById('numberInputLabel');
@@ -376,41 +485,67 @@
             const agentListElement = document.getElementById('agentList');
             const weekLabel = document.getElementById('weekLabel');
             
-            // Elements for the Easter Egg
+            // Easter Egg & Admin Elements
             const secretLogo = document.getElementById('secretLogo');
+            const passwordModal = document.getElementById('passwordModal');
+            const secretCodeInput = document.getElementById('secretCodeInput');
+            const authSubmitBtn = document.getElementById('authSubmitBtn');
+            const authCancelBtn = document.getElementById('authCancelBtn');
+            
             const adminPanel = document.getElementById('adminPanel');
+            const closeAdminBtn = document.getElementById('closeAdminBtn');
+            const resetDataBtn = document.getElementById('resetDataBtn');
+            
+            const adminAgentSelect = document.getElementById('adminAgentSelect');
+            const adminActionSelect = document.getElementById('adminActionSelect');
+            const adminValueInput = document.getElementById('adminValueInput');
+            const adminOverrideBtn = document.getElementById('adminOverrideBtn');
+            const adminFeedback = document.getElementById('adminFeedback');
 
-            // --- EASTER EGG LOGIC ---
+            // --- EASTER EGG LOGIC (5 CLICKS TO OPEN MODAL) ---
             let logoClickCount = 0;
             let logoClickTimer;
 
             secretLogo.addEventListener('click', () => {
                 logoClickCount++;
-                
-                // Reset the count if they take longer than 2 seconds between clicks
                 clearTimeout(logoClickTimer);
-                logoClickTimer = setTimeout(() => {
-                    logoClickCount = 0;
-                }, 2000);
+                logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 2000);
 
-                // When they hit 5 fast clicks
                 if (logoClickCount === 5) {
-                    logoClickCount = 0; // reset for next time
-                    
-                    // Open the secret text box
-                    const authCode = prompt("SECURITY OVERRIDE:\nEnter authorization code:");
-                    
-                    if (authCode === "Agents4ssembl3") {
-                        adminPanel.style.display = "block"; // Reveal the panel
-                        // Scroll down to make sure they see it
-                        window.scrollTo(0, document.body.scrollHeight);
-                    } else if (authCode !== null) {
-                        alert("Access Denied.");
-                    }
+                    logoClickCount = 0; 
+                    passwordModal.style.display = "flex"; // Show modal
+                    secretCodeInput.focus();
                 }
             });
 
-            // --- UI TOGGLE LOGIC ---
+            // --- PASSWORD VALIDATION ---
+            function checkPassword() {
+                if (secretCodeInput.value === "Agents4ssembl3") {
+                    passwordModal.style.display = "none";
+                    secretCodeInput.value = "";
+                    adminPanel.style.display = "block"; // Reveal panel
+                    window.scrollTo(0, document.body.scrollHeight);
+                } else {
+                    alert("Access Denied.");
+                    secretCodeInput.value = "";
+                    passwordModal.style.display = "none";
+                }
+            }
+
+            authSubmitBtn.addEventListener('click', checkPassword);
+            secretCodeInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPassword(); });
+            
+            authCancelBtn.addEventListener('click', () => {
+                passwordModal.style.display = "none";
+                secretCodeInput.value = "";
+            });
+
+            // Close Admin Panel Button
+            closeAdminBtn.addEventListener('click', () => {
+                adminPanel.style.display = "none";
+            });
+
+            // --- MAIN UI TOGGLE LOGIC ---
             actionSelect.addEventListener('change', () => {
                 if (actionSelect.value === 'GOAL') {
                     numberInputLabel.textContent = "Scheduled Hours";
@@ -444,13 +579,11 @@
                     .eq('week_of', currentWeekString);
 
                 if (error) {
-                    console.error("Error fetching data:", error);
                     agentListElement.innerHTML = '<li class="agent-item" style="color:#d32f2f; text-align:center;">Error loading database.</li>';
                     return;
                 }
 
                 const precinctData = {};
-                
                 data.forEach(log => {
                     const parts = log.agent_name.split('|');
                     const realName = parts[0];
@@ -459,7 +592,6 @@
                     if (!precinctData[realName]) {
                         precinctData[realName] = { goal: 0, progress: 0 };
                     }
-
                     if (logType === 'GOAL') {
                         precinctData[realName].goal += log.target_minutes;
                     } else if (logType === 'PROGRESS') {
@@ -505,26 +637,14 @@
                 });
             }
 
-            // --- CALCULATE AND SEND TO SUPABASE ---
+            // --- CALCULATE AND SEND (PUBLIC UI) ---
             async function submitData() {
                 const selectedAgent = agentSelect.value;
                 const action = actionSelect.value;
                 const numVal = numberInput.value;
 
-                if (!selectedAgent) {
-                    resultOutput.textContent = "Please select an agent first!";
-                    resultOutput.style.color = "#d32f2f";
-                    return;
-                }
-
-                if (!robotCheck.checked) {
-                    resultOutput.textContent = "Security check: Please verify you are not a robot!";
-                    resultOutput.style.color = "#d32f2f"; 
-                    return;
-                }
-
-                if (numVal === "" || isNaN(numVal) || numVal < 0) {
-                    resultOutput.textContent = "Please enter a valid number.";
+                if (!selectedAgent || !robotCheck.checked || numVal === "" || isNaN(numVal) || numVal < 0) {
+                    resultOutput.textContent = "Please fill out all fields and check the box.";
                     resultOutput.style.color = "#d32f2f";
                     return;
                 }
@@ -532,82 +652,89 @@
                 submitBtn.disabled = true;
                 submitBtn.textContent = "Saving...";
 
-                let finalMinutes = 0;
-                if (action === 'GOAL') {
-                    finalMinutes = Math.round((parseFloat(numVal) * 60) * 0.81);
-                } else {
-                    finalMinutes = parseInt(numVal);
-                }
-
+                let finalMinutes = (action === 'GOAL') ? Math.round((parseFloat(numVal) * 60) * 0.81) : parseInt(numVal);
                 const dbAgentName = `${selectedAgent}|${action}`;
 
-                const { error } = await _supabase
-                    .from('utilization_logs')
-                    .insert([
-                        { 
-                            agent_name: dbAgentName, 
-                            target_minutes: finalMinutes, 
-                            week_of: currentWeekString 
-                        }
-                    ]);
+                const { error } = await _supabase.from('utilization_logs').insert([
+                    { agent_name: dbAgentName, target_minutes: finalMinutes, week_of: currentWeekString }
+                ]);
 
                 submitBtn.disabled = false;
                 submitBtn.textContent = "Submit Data";
 
                 if (error) {
-                    console.error("Error saving data:", error);
                     resultOutput.style.color = "#d32f2f"; 
                     resultOutput.textContent = "Failed to sync to cloud.";
                     return;
                 }
 
                 resultOutput.style.color = "#4CAF50"; 
-                if (action === 'GOAL') {
-                    resultOutput.textContent = `Set weekly target of ${finalMinutes} minutes for ${selectedAgent}.`;
-                } else {
-                    resultOutput.textContent = `Logged ${finalMinutes} generated minutes for ${selectedAgent}.`;
-                }
+                resultOutput.textContent = `Success! Saved data for ${selectedAgent}.`;
                 
                 robotCheck.checked = false;
                 numberInput.value = '';
-
                 fetchDashboardData();
             }
 
-            // --- MANUAL RESET ---
+            // --- ADMIN OVERRIDE (INDIVIDUAL AGENT EDIT) ---
+            async function forceUpdateAgent() {
+                const targetAgent = adminAgentSelect.value;
+                const targetAction = adminActionSelect.value;
+                const exactMinutes = adminValueInput.value;
+
+                if (exactMinutes === "" || isNaN(exactMinutes) || exactMinutes < 0) {
+                    adminFeedback.textContent = "Please enter valid total minutes.";
+                    return;
+                }
+
+                const dbAgentName = `${targetAgent}|${targetAction}`;
+                adminOverrideBtn.textContent = "Updating...";
+                adminOverrideBtn.disabled = true;
+
+                // Step 1: Delete all old records for this specific agent + action for the week
+                await _supabase.from('utilization_logs').delete()
+                    .eq('week_of', currentWeekString)
+                    .eq('agent_name', dbAgentName);
+
+                // Step 2: Insert one clean master record with the new absolute total
+                const { error } = await _supabase.from('utilization_logs').insert([
+                    { agent_name: dbAgentName, target_minutes: parseInt(exactMinutes), week_of: currentWeekString }
+                ]);
+
+                adminOverrideBtn.textContent = "Force Update Agent";
+                adminOverrideBtn.disabled = false;
+
+                if (error) {
+                    adminFeedback.textContent = "Error updating database.";
+                } else {
+                    adminFeedback.style.color = "#4CAF50";
+                    adminFeedback.textContent = `Successfully updated ${targetAgent}.`;
+                    adminValueInput.value = '';
+                    fetchDashboardData();
+                    
+                    // Reset feedback text color back to red after a few seconds
+                    setTimeout(() => { adminFeedback.textContent = ""; adminFeedback.style.color = "#d32f2f"; }, 3000);
+                }
+            }
+
+            // --- ADMIN FULL WIPE ---
             async function manualReset() {
-                // Double confirmation to be extra safe
-                if(confirm("Are you sure you want to clear ALL cloud data for this week? This deletes everyone's logs and cannot be undone!")) {
+                if(confirm("Are you sure you want to clear ALL cloud data for this week?")) {
                     if(confirm("FINAL WARNING: Wiping the database now.")) {
-                        resultOutput.textContent = "Deleting...";
-                        
-                        const { error } = await _supabase
-                            .from('utilization_logs')
-                            .delete()
-                            .eq('week_of', currentWeekString);
-
-                        if (error) {
-                            resultOutput.textContent = "Failed to delete data.";
-                            resultOutput.style.color = "#d32f2f";
-                            return;
+                        const { error } = await _supabase.from('utilization_logs').delete().eq('week_of', currentWeekString);
+                        if (!error) {
+                            adminPanel.style.display = "none";
+                            fetchDashboardData();
                         }
-
-                        resultOutput.textContent = "Cloud data cleared for the week.";
-                        resultOutput.style.color = "#666666";
-                        
-                        // Hide the panel again after wiping
-                        adminPanel.style.display = "none";
-                        
-                        fetchDashboardData();
                     }
                 }
             }
 
             submitBtn.addEventListener('click', submitData);
+            numberInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') submitData(); });
+            
+            adminOverrideBtn.addEventListener('click', forceUpdateAgent);
             resetDataBtn.addEventListener('click', manualReset);
-            numberInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') submitData();
-            });
 
             // Initial load
             fetchDashboardData();
