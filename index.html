@@ -286,7 +286,7 @@
             box-sizing: border-box;
             text-align: center;
             margin-bottom: 20px;
-            position: relative; /* So the X button can be absolute inside it */
+            position: relative;
         }
 
         .close-admin-btn {
@@ -464,15 +464,21 @@
         </div>
     </div>
 
-    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v4.0 (Admin Tools)</div>
+    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | <span id="appVersionDisplay"></span></div>
 
     <script>
+        // --- APP VERSION MANAGER ---
+        const APP_VERSION = "v4.1 (Dynamic Versioning)";
+
         const _supabase = supabase.createClient(
             'https://yxeozqztofvpyadxveyr.supabase.co',
             'sb_publishable_3WRcMc4zjv-N-9oZry-SbA_MmRRKv1b'
         );
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Set the version string in the footer
+            document.getElementById('appVersionDisplay').textContent = APP_VERSION;
+
             // Main App Elements
             const submitBtn = document.getElementById('submitBtn');
             const agentSelect = document.getElementById('agentSelect');
