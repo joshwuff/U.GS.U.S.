@@ -3,170 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Precinct Utilization Goal</title>
+    <title>U.GS.U.C. - Utilization Goal Calculator</title>
     <style>
-        :root {
-            --gs-orange: #ff6a00;
-            --gs-black: #000000;
-            --gs-gray: #333333;
-            --bg-color: #f4f4f9;
-            --text-color: #1a1a1a;
-        }
-
+        /*
+         * CSS Stylesheet
+         * Replicates the colors, centering, and layout seen in image_14.png
+         */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
+            /* Mimics the office background of the monitor */
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        .container {
+        /* The main white box containing the app */
+        .calculator-container {
             background-color: #ffffff;
+            width: 90%;
+            max-width: 600px;
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
-            border-top: 5px solid var(--gs-orange);
         }
 
+        /* The complex composite logo from image_13.png */
+        .logo {
+            display: block;
+            margin: 0 auto 30px;
+            max-width: 250px;
+            height: auto;
+        }
+
+        /* Main Title */
         h1 {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            color: var(--gs-black);
+            font-size: 24px;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 30px;
         }
 
+        /* Input section styling */
         .input-group {
-            margin-bottom: 20px;
+            width: 80%;
+            margin: 0 auto 20px;
             text-align: left;
         }
 
-        label {
+        .input-label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            color: var(--gs-gray);
+            font-size: 14px;
+            color: #666666;
+            margin-bottom: 5px;
         }
 
         input[type="number"] {
             width: 100%;
-            padding: 12px;
-            font-size: 1.1rem;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-            transition: border-color 0.3s;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Crucial for padding to work correctly */
         }
 
-        input[type="number"]:focus {
-            border-color: var(--gs-orange);
-            outline: none;
+        /* Formula text styling */
+        .formula-text {
+            font-size: 14px;
+            color: #333333;
+            margin-bottom: 30px;
         }
 
+        /* Primary action button (Orange) */
         button {
-            background-color: var(--gs-orange);
+            background-color: #f57c00; /* Distinctive Orange from image_13.png */
             color: #ffffff;
             border: none;
-            padding: 15px 20px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 18px;
+            border-radius: 4px;
             cursor: pointer;
-            width: 100%;
             transition: background-color 0.3s;
         }
 
         button:hover {
-            background-color: #e65c00;
+            background-color: #e66a00;
         }
 
-        #result-container {
-            margin-top: 25px;
-            padding: 20px;
-            background-color: var(--gs-gray);
-            color: #ffffff;
-            border-radius: 8px;
-            display: none;
+        /* Result section styling */
+        .result-section {
+            margin-top: 30px;
         }
 
-        .result-number {
-            font-size: 2.5rem;
+        .result-label {
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 10px;
             font-weight: bold;
-            color: var(--gs-orange);
-            margin: 10px 0;
         }
 
-        .result-subtext {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .footer-note {
-            margin-top: 20px;
-            font-size: 0.8rem;
-            color: #888;
+        /*
+         * The Result Text.
+         * Grey and italicized, exactly as in image_14.png.
+         * This will update via JavaScript.
+         */
+        .result-output {
+            font-size: 18px;
+            color: #666666;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Agent Utilization Calculator</h1>
-        
+    <div class="calculator-container">
+        <img src="https://i.imgur.com/Kj75lGj.png" alt="Unofficial Geek Squad U.GS.U.C. Logo" class="logo">
+
+        <h1>U.GS.U.C. - Utilization Goal Calculator</h1>
+
         <div class="input-group">
-            <label for="hoursWorked">Hours Worked (This Week):</label>
-            <input type="number" id="hoursWorked" placeholder="e.g. 38.5" step="0.5" min="0">
+            <label for="hoursWorked" class="input-label">Hours Worked</label>
+            <input type="number" id="hoursWorked" placeholder="e.g., 8">
         </div>
 
-        <button onclick="calculateUtilization()">Calculate Goal</button>
+        <p class="formula-text">Goal = (hours x 60) x 0.81</p>
 
-        <div id="result-container">
-            <div>Your Target:</div>
-            <div class="result-number" id="minutesResult">0</div>
-            <div>Minutes</div>
-            <div class="result-subtext" id="hoursResult"></div>
+        <button id="calculateBtn">Calculate Goal</button>
+
+        <div class="result-section">
+            <p class="result-label">Result:</p>
+            <p id="resultOutput" class="result-output">Goal for 8 hours: 389 minutes</p>
         </div>
     </div>
 
-    <div class="footer-note">Target: 81% (0.81) | You've got this!!! | v0.1</div>
-
     <script>
-        function calculateUtilization() {
-            const hoursInput = document.getElementById('hoursWorked').value;
-            const resultContainer = document.getElementById('result-container');
-            const minutesResult = document.getElementById('minutesResult');
-            const hoursResult = document.getElementById('hoursResult');
+        /*
+         * JavaScript Functionality
+         * Handles user input, validation, and real-time calculation.
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            const calculateBtn = document.getElementById('calculateBtn');
+            const hoursInput = document.getElementById('hoursWorked');
+            const resultOutput = document.getElementById('resultOutput');
 
-            const hours = parseFloat(hoursInput) || 0;
+            // Function to perform the calculation and update the output
+            function calculateGoal() {
+                const hoursVal = hoursInput.value;
 
-            if (hours > 0) {
-                const totalMinutes = (hours * 60) * 0.81;
-                const roundedMinutes = Math.round(totalMinutes);
-                const displayHours = Math.floor(roundedMinutes / 60);
-                const displayMinutes = roundedMinutes % 60;
-
-                minutesResult.innerText = roundedMinutes;
-                
-                if (displayHours > 0) {
-                    hoursResult.innerText = `(~ ${displayHours}h ${displayMinutes}m)`;
-                } else {
-                    hoursResult.innerText = '';
+                // Validation: check if the input is a valid number
+                if (hoursVal === "" || isNaN(hoursVal) || hoursVal < 0) {
+                    resultOutput.textContent = "Please enter a valid number of hours.";
+                    resultOutput.style.color = "red";
+                    return;
                 }
 
-                resultContainer.style.display = 'block';
-            } else {
-                alert("Please enter a valid number of hours.");
+                const hours = parseFloat(hoursVal);
+
+                // Replicating the formula from image_11.png: (hours x 60) x 0.81
+                const totalMinutes = (hours * 60) * 0.81;
+
+                // Rounding to the nearest whole minute for a clean target.
+                const roundedMinutes = Math.round(totalMinutes);
+
+                // Formatting and updating the output text.
+                // Ensures the output matches the "Goal for X hours: Y minutes" pattern.
+                resultOutput.style.color = "#666666"; // Restore grey color
+                resultOutput.textContent = `Goal for ${hours} hours: ${roundedMinutes} minutes`;
             }
-        }
+
+            // Attaching the event listener to the button
+            calculateBtn.addEventListener('click', calculateGoal);
+
+            // Optional: Also allow calculation by pressing 'Enter' in the input box
+            hoursInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    calculateGoal();
+                }
+            });
+        });
     </script>
 </body>
 </html>
