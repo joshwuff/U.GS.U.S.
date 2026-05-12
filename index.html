@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>U.GS.U.C. - Utilization Goal Calculator</title>
+    
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
     <style>
         body {
             background-color: #f0f0f0;
@@ -136,6 +139,11 @@
             background-color: #e66a00;
         }
 
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
         .result-section {
             margin-top: 20px;
         }
@@ -157,11 +165,23 @@
             box-sizing: border-box;
         }
 
-        .dashboard h2 {
-            font-size: 20px;
-            margin-top: 0;
+        .dashboard-header {
+            display: flex;
+            flex-direction: column;
             border-bottom: 2px solid #f57c00;
             padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-header h2 {
+            font-size: 20px;
+            margin: 0;
+        }
+        
+        .week-label {
+            font-size: 14px;
+            color: #666666;
+            margin-top: 5px;
         }
 
         .agent-list {
@@ -195,6 +215,21 @@
             font-size: 12px;
             color: #888888;
             text-align: center;
+        }
+
+        .reset-btn {
+            background: none;
+            border: none;
+            color: #d32f2f;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 15px;
+            padding: 5px;
+        }
+        
+        .reset-btn:hover {
+            color: #b71c1c;
         }
     </style>
 </head>
@@ -244,51 +279,97 @@
         <button id="calculateBtn">Calculate & Log Target</button>
 
         <div class="result-section">
-            <p id="resultOutput" class="result-output">Awaiting calculation...</p>
+            <p id="resultOutput" class="result-output">Ready to sync...</p>
         </div>
     </div>
 
     <div class="dashboard">
-        <h2>Precinct Totals (Target Minutes)</h2>
+        <div class="dashboard-header">
+            <h2>Precinct Totals</h2>
+            <span class="week-label" id="weekLabel">Loading week...</span>
+        </div>
         <ul class="agent-list" id="agentList">
-            </ul>
+            <li class="agent-item" style="color:#999; justify-content:center;">Connecting to database...</li>
+        </ul>
     </div>
 
-    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v0.2</div>
+    <button id="resetDataBtn" class="reset-btn">Reset Data for Current Week</button>
+
+    <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v1.0 (Cloud Sync)</div>
 
     <script>
+        // Initialize Supabase with your specific Project URL and Publishable Key
+        const _supabase = supabase.createClient(
+            'https://yxeozqztofvpydxveyr.supabase.co',
+            'sb_publishable_3WRcMc4zjv-N-9oZry-SbA_MmRRKv1b'
+        );
+
         document.addEventListener('DOMContentLoaded', () => {
             const calculateBtn = document.getElementById('calculateBtn');
+            const resetDataBtn = document.getElementById('resetDataBtn');
             const agentSelect = document.getElementById('agentSelect');
             const hoursInput = document.getElementById('hoursWorked');
             const robotCheck = document.getElementById('robotCheck');
             const resultOutput = document.getElementById('resultOutput');
             const agentListElement = document.getElementById('agentList');
+            const weekLabel = document.getElementById('weekLabel');
 
-            // Load saved data from localStorage, or start with an empty object if none exists
-            let precinctData = JSON.parse(localStorage.getItem('ugds_precinct_data')) || {};
+            // --- DATE & WEEK LOGIC ---
+            function getMondayOfCurrentWeek() {
+                const today = new Date();
+                const day = today.getDay();
+                const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+                const monday = new Date(today.setDate(diff));
+                const options = { month: 'long', day: 'numeric', year: 'numeric' };
+                return monday.toLocaleDateString('en-US', options);
+            }
 
-            // Force clear the inputs and checkbox on page load/refresh
+            const currentWeekString = getMondayOfCurrentWeek();
+            weekLabel.textContent = `Week of ${currentWeekString}`;
+
+            // --- UI RESET ---
             hoursInput.value = '';
             agentSelect.selectedIndex = 0;
             robotCheck.checked = false;
-            
-            // Render the dashboard immediately on load
-            updateDashboard();
 
-            function updateDashboard() {
-                agentListElement.innerHTML = ''; // Clear current list
+            // --- FETCH DATA FROM SUPABASE ---
+            async function fetchDashboardData() {
+                // Pull all logs from the database that match the current week
+                const { data, error } = await _supabase
+                    .from('utilization_logs')
+                    .select('*')
+                    .eq('week_of', currentWeekString);
 
-                // Sort agents alphabetically before displaying
-                const sortedAgents = Object.keys(precinctData).sort();
+                if (error) {
+                    console.error("Error fetching data:", error);
+                    agentListElement.innerHTML = '<li class="agent-item" style="color:#d32f2f; justify-content:center;">Error loading database.</li>';
+                    return;
+                }
+
+                // Add up the minutes for each agent
+                const totals = {};
+                data.forEach(log => {
+                    if (!totals[log.agent_name]) {
+                        totals[log.agent_name] = 0;
+                    }
+                    totals[log.agent_name] += log.target_minutes;
+                });
+
+                renderDashboard(totals);
+            }
+
+            // --- RENDER DASHBOARD ---
+            function renderDashboard(totals) {
+                agentListElement.innerHTML = ''; 
+                const sortedAgents = Object.keys(totals).sort();
 
                 if (sortedAgents.length === 0) {
-                    agentListElement.innerHTML = '<li class="agent-item" style="color:#999; justify-content:center;">No data logged yet.</li>';
+                    agentListElement.innerHTML = '<li class="agent-item" style="color:#999; justify-content:center;">No data logged this week.</li>';
                     return;
                 }
 
                 sortedAgents.forEach(agent => {
-                    const totalMinutes = precinctData[agent];
+                    const totalMinutes = totals[agent];
                     const displayHours = Math.floor(totalMinutes / 60);
                     const displayMinutes = totalMinutes % 60;
 
@@ -303,7 +384,8 @@
                 });
             }
 
-            function calculateGoal() {
+            // --- CALCULATE AND SEND TO SUPABASE ---
+            async function calculateGoal() {
                 const selectedAgent = agentSelect.value;
                 const hoursVal = hoursInput.value;
 
@@ -325,37 +407,75 @@
                     return;
                 }
 
+                calculateBtn.disabled = true;
+                calculateBtn.textContent = "Saving...";
+
                 const hours = parseFloat(hoursVal);
                 const targetMinutes = Math.round((hours * 60) * 0.81);
 
-                // Add to the agent's running total in our data object
-                if (!precinctData[selectedAgent]) {
-                    precinctData[selectedAgent] = 0;
+                // Insert the new log into the Supabase database
+                const { error } = await _supabase
+                    .from('utilization_logs')
+                    .insert([
+                        { 
+                            agent_name: selectedAgent, 
+                            target_minutes: targetMinutes, 
+                            week_of: currentWeekString 
+                        }
+                    ]);
+
+                calculateBtn.disabled = false;
+                calculateBtn.textContent = "Calculate & Log Target";
+
+                if (error) {
+                    console.error("Error saving data:", error);
+                    resultOutput.style.color = "#d32f2f"; 
+                    resultOutput.textContent = "Failed to sync to cloud. Try again.";
+                    return;
                 }
-                precinctData[selectedAgent] += targetMinutes;
 
-                // Save the updated object back into the browser's localStorage
-                localStorage.setItem('ugds_precinct_data', JSON.stringify(precinctData));
-
-                // Show success message
-                resultOutput.style.color = "#4CAF50"; // Green for success
-                resultOutput.textContent = `Logged ${targetMinutes} target minutes for ${selectedAgent}.`;
-
-                // Update the dashboard UI
-                updateDashboard();
+                resultOutput.style.color = "#4CAF50"; 
+                resultOutput.textContent = `Synced ${targetMinutes} target minutes for ${selectedAgent}.`;
                 
-                // Uncheck robot to force it for the next entry
                 robotCheck.checked = false;
                 hoursInput.value = '';
+
+                // Refresh the dashboard with the newly saved data
+                fetchDashboardData();
             }
 
-            calculateBtn.addEventListener('click', calculateGoal);
+            // --- MANUAL RESET (WIPES THE CLOUD FOR THIS WEEK) ---
+            async function manualReset() {
+                if(confirm("Are you sure you want to clear ALL cloud data for this week? This deletes everyone's logs and cannot be undone!")) {
+                    resultOutput.textContent = "Deleting...";
+                    
+                    const { error } = await _supabase
+                        .from('utilization_logs')
+                        .delete()
+                        .eq('week_of', currentWeekString);
 
-            hoursInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    calculateGoal();
+                    if (error) {
+                        console.error("Error deleting data:", error);
+                        resultOutput.textContent = "Failed to delete data.";
+                        resultOutput.style.color = "#d32f2f";
+                        return;
+                    }
+
+                    resultOutput.textContent = "Cloud data cleared for the week.";
+                    resultOutput.style.color = "#666666";
+                    fetchDashboardData();
                 }
+            }
+
+            // --- INITIALIZE ON LOAD ---
+            calculateBtn.addEventListener('click', calculateGoal);
+            resetDataBtn.addEventListener('click', manualReset);
+            hoursInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') calculateGoal();
             });
+
+            // Fetch the live data as soon as the page loads!
+            fetchDashboardData();
         });
     </script>
 </body>
