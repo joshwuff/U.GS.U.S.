@@ -1,4 +1,4 @@
-const APP_VERSION = "4.18";
+const APP_VERSION = "4.21";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -109,14 +109,41 @@ document.addEventListener('DOMContentLoaded', () => {
     nextWeekBtn.addEventListener('click', () => { selectedMonday.setDate(selectedMonday.getDate() + 7); updateWeekUI(); });
     currentWeekBtn.addEventListener('click', () => { selectedMonday = new Date(actualCurrentMonday); updateWeekUI(); });
 
-    // --- SERVICE CALCULATOR LOGIC ---
+    // --- SERVICE CALCULATOR LOGIC & DYNAMIC DROPDOWNS ---
+    function updateDropdownOptions() {
+        // Find out which tags are currently selected across all 4 boxes
+        const selectedTags = Array.from(serviceSelects)
+            .map(select => select.options[select.selectedIndex].dataset.tag)
+            .filter(tag => tag !== "NONE");
+
+        // Loop through each dropdown to grey out options that are already picked
+        serviceSelects.forEach(select => {
+            Array.from(select.options).forEach(option => {
+                if (option.dataset.tag === "NONE") return; // Always allow them to select NONE
+
+                // If this tag is selected SOMEWHERE, and it's NOT the one actively selected in THIS box... disable it!
+                if (selectedTags.includes(option.dataset.tag) && select.options[select.selectedIndex].dataset.tag !== option.dataset.tag) {
+                    option.disabled = true;
+                    option.style.display = 'none'; // Completely hides it on desktop browsers
+                } else {
+                    option.disabled = false;
+                    option.style.display = 'block';
+                }
+            });
+        });
+    }
+
     function updateCalculatedMinutes() {
         currentCalculatedMinutes = 0;
         serviceSelects.forEach(select => {
             currentCalculatedMinutes += parseInt(select.value);
         });
         calculatedTotalDisplay.textContent = `Calculated Minutes: ${currentCalculatedMinutes}`;
+        
+        // Trigger the duplicate prevention check
+        updateDropdownOptions();
     }
+    
     serviceSelects.forEach(select => select.addEventListener('change', updateCalculatedMinutes));
 
     // --- CUSTOM CALENDAR LOGIC ---
@@ -320,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
+        // Sort logs by newest first based on timestamp
         logs.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
         
         logs.forEach(log => {
@@ -375,12 +403,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultOutput.textContent = "Please select at least one completed service."; resultOutput.style.color = "#d32f2f"; return;
             }
             
+            // Backup validation just in case they bypass the greyed-out options
             let selectedTags = [];
+            let hasDuplicates = false;
+            
             serviceSelects.forEach(s => {
                 if (s.value !== "0") {
-                    selectedTags.push(s.options[s.selectedIndex].dataset.tag);
+                    const tag = s.options[s.selectedIndex].dataset.tag;
+                    if (selectedTags.includes(tag)) {
+                        hasDuplicates = true;
+                    }
+                    selectedTags.push(tag);
                 }
             });
+
+            if (hasDuplicates) {
+                resultOutput.textContent = "Error: You cannot log the same service tag more than once per Work Order.";
+                resultOutput.style.color = "#d32f2f";
+                return; 
+            }
 
             finalMinutes = currentCalculatedMinutes;
             dbAgentName = `${selectedAgent}|PROGRESS|WO:${woInput.value}|${selectedTags.join('+')}`;
@@ -412,6 +453,8 @@ document.addEventListener('DOMContentLoaded', () => {
         hoursInput.value = '';
         woInput.value = '';
         serviceSelects.forEach(s => s.value = "0");
+        
+        // Calling this after submitting clears the greyed-out options for the next entry
         updateCalculatedMinutes();
         
         fetchDashboardData();
@@ -473,5 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
     adminOverrideBtn.addEventListener('click', forceUpdateAgent);
     resetDataBtn.addEventListener('click', manualReset);
 
+    // Initial check when page loads to set dropdowns
+    updateDropdownOptions();
     updateWeekUI();
 });
