@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>U.GS.U.S. - Utilization System</title>
     
+    <!-- Supabase Database Library -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
+    <!-- Link to your new CSS file -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,6 +18,7 @@
 
     <div class="main-layout">
         
+        <!-- MAIN CALCULATOR -->
         <div class="calculator-container">
             <div class="input-group">
                 <label for="agentSelect" class="input-label">Select Agent</label>
@@ -43,6 +46,7 @@
                 </select>
             </div>
 
+            <!-- VIEW 1: GOAL SETTING -->
             <div id="goalInputsWrapper">
                 <div class="input-group">
                     <label for="hoursInput" class="input-label">Scheduled Hours</label>
@@ -51,6 +55,7 @@
                 <p class="formula-text">Math: (Hours x 60) x 0.81 = Target Minutes</p>
             </div>
 
+            <!-- VIEW 2: WORK ORDER LOGGING -->
             <div id="progressInputsWrapper" style="display: none;">
                 <div class="wo-calc-container">
                     <div class="input-group" style="width: 100%;">
@@ -64,21 +69,23 @@
                             <option value="0" data-tag="NONE">-- Tag 1 --</option>
                             <option value="57" data-tag="GSDB/GSRD">GSDB / GSRD (57m)</option>
                             <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
+                            <option value="49" data-tag="GSIR">GSIR (49m)</option>
                             <option value="25" data-tag="GSDI">GSDI (25m)</option>
                             <option value="20" data-tag="GSOI/GSPW">GSOI / GSPW (20m)</option>
                             <option value="18" data-tag="GSHW/GSHD">GSHW / GSHD (18m)</option>
                             <option value="12" data-tag="GSSW">GSSW (12m)</option>
-                            <option value="4" data-tag="GSWUR">GS WUR (4m)</option>
+                            <option value="4" data-tag="GSWUR">GSWUR (4m)</option>
                         </select>
                         <select class="service-select" autocomplete="off">
                             <option value="0" data-tag="NONE">-- Tag 2 --</option>
                             <option value="57" data-tag="GSDB/GSRD">GSDB / GSRD (57m)</option>
                             <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
+                            <option value="49" data-tag="GSIR">GSIR (49m)</option>
                             <option value="25" data-tag="GSDI">GSDI (25m)</option>
                             <option value="20" data-tag="GSOI/GSPW">GSOI / GSPW (20m)</option>
                             <option value="18" data-tag="GSHW/GSHD">GSHW / GSHD (18m)</option>
                             <option value="12" data-tag="GSSW">GSSW (12m)</option>
-                            <option value="4" data-tag="GSWUR">GS WUR (4m)</option>
+                            <option value="4" data-tag="GSWUR">GSWUR (4m)</option>
                         </select>
                     </div>
                     <div class="wo-calc-row">
@@ -86,21 +93,23 @@
                             <option value="0" data-tag="NONE">-- Tag 3 --</option>
                             <option value="57" data-tag="GSDB/GSRD">GSDB / GSRD (57m)</option>
                             <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
+                            <option value="49" data-tag="GSIR">GSIR (49m)</option>
                             <option value="25" data-tag="GSDI">GSDI (25m)</option>
                             <option value="20" data-tag="GSOI/GSPW">GSOI / GSPW (20m)</option>
                             <option value="18" data-tag="GSHW/GSHD">GSHW / GSHD (18m)</option>
                             <option value="12" data-tag="GSSW">GSSW (12m)</option>
-                            <option value="4" data-tag="GSWUR">GS WUR (4m)</option>
+                            <option value="4" data-tag="GSWUR">GSWUR (4m)</option>
                         </select>
                         <select class="service-select" autocomplete="off">
                             <option value="0" data-tag="NONE">-- Tag 4 --</option>
                             <option value="57" data-tag="GSDB/GSRD">GSDB / GSRD (57m)</option>
                             <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
+                            <option value="49" data-tag="GSIR">GSIR (49m)</option>
                             <option value="25" data-tag="GSDI">GSDI (25m)</option>
                             <option value="20" data-tag="GSOI/GSPW">GSOI / GSPW (20m)</option>
                             <option value="18" data-tag="GSHW/GSHD">GSHW / GSHD (18m)</option>
                             <option value="12" data-tag="GSSW">GSSW (12m)</option>
-                            <option value="4" data-tag="GSWUR">GS WUR (4m)</option>
+                            <option value="4" data-tag="GSWUR">GSWUR (4m)</option>
                         </select>
                     </div>
                     
@@ -127,6 +136,7 @@
             </div>
         </div>
 
+        <!-- CHEAT SHEET SIDE PANEL -->
         <div id="cheatsheetContainer" class="cheatsheet-container" style="display: none;">
             <h3>Service Grid</h3>
             <div class="cheatsheet-grid">
@@ -136,6 +146,9 @@
                 <span class="cs-tag">GSOSR</span> <span class="cs-min">49m</span>
                 <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Operating System Repair</span>
                 
+                <span class="cs-tag">GSIR</span> <span class="cs-min">49m</span>
+                <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">iPhone Repair</span>
+
                 <span class="cs-tag">GSDI</span> <span class="cs-min">25m</span>
                 <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Diagnostics</span>
                 
@@ -148,13 +161,14 @@
                 <span class="cs-tag">GSSW</span> <span class="cs-min">12m</span>
                 <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Software Install / Repair</span>
                 
-                <span class="cs-tag">GS WUR</span> <span class="cs-min">4m</span>
+                <span class="cs-tag">GSWUR</span> <span class="cs-min">4m</span>
                 <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Whole Unit Replacement</span>
             </div>
         </div>
 
     </div>
 
+    <!-- DASHBOARD -->
     <div class="dashboard">
         <div class="dashboard-header">
             <h2>Precinct Totals</h2>
@@ -171,6 +185,7 @@
         </ul>
     </div>
 
+    <!-- The Hidden Admin Panel -->
     <div id="adminPanel" class="admin-panel" style="display: none;">
         <span class="close-admin-btn" id="closeAdminBtn">✖</span>
         <h3>🛡️ Precinct Admin Override</h3>
@@ -201,6 +216,7 @@
 
         <hr class="admin-divider">
 
+        <!-- Work Order Audit Log -->
         <div style="text-align: left; font-size: 14px; font-weight: bold; color: #555; margin-bottom: 5px;">Work Order Audit Log:</div>
         <div class="audit-log-container">
             <table class="audit-table">
@@ -214,7 +230,8 @@
                     </tr>
                 </thead>
                 <tbody id="auditLogBody">
-                    </tbody>
+                    <!-- Logs injected here -->
+                </tbody>
             </table>
         </div>
 
@@ -226,6 +243,7 @@
         <button id="resetDataBtn" class="admin-action-btn">Wipe Selected Week Data</button>
     </div>
 
+    <!-- Security Password Modal -->
     <div id="passwordModal" class="modal-overlay">
         <div class="modal-content">
             <h3>SECURITY OVERRIDE</h3>
@@ -236,6 +254,7 @@
         </div>
     </div>
 
+    <!-- Custom Calendar Modal -->
     <div id="calendarModal" class="modal-overlay">
         <div class="modal-content calendar-content">
             <div class="calendar-header">
@@ -253,6 +272,7 @@
 
     <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v<span id="appVersionDisplay"></span></div>
 
+    <!-- Link to your new Javascript file -->
     <script src="script.js"></script>
 </body>
 </html>
