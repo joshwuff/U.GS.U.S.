@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Theme Logic
+    // 1. Theme Toggle Logic
     const toggleBtn = document.createElement('button');
     toggleBtn.className = 'theme-toggle-btn';
     toggleBtn.innerHTML = '🌙';
@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const applyTheme = (theme) => {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
-        document.cookie = `theme=${theme}; path=/; max-age=31536000`;
+        document.cookie = `theme=${theme}; path=/; max-age=31536000; SameSite=Strict`;
         toggleBtn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
     };
 
@@ -20,4 +20,5 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(newTheme);
     });
 
-    // ... Rest of your existing script.js code ...
+    // ... (All your existing Supabase/Calculation code goes here)
+});
