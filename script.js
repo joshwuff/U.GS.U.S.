@@ -1,5 +1,3 @@
-const APP_VERSION = "29";
-
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
     'sb_publishable_3WRcMc4zjv-N-9oZry-SbA_MmRRKv1b'
@@ -7,7 +5,7 @@ const _supabase = supabase.createClient(
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- 1. THEME LOGIC ---
+    // --- 1. THEME ENGINE ---
     const toggleBtn = document.createElement('button');
     toggleBtn.className = 'theme-toggle-btn';
     toggleBtn.innerHTML = '🌙';
@@ -28,19 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(theme);
     });
 
-    // --- 2. ELEMENTS ---
-    const agentSelect = document.getElementById('agentSelect');
-    const actionSelect = document.getElementById('actionSelect');
-    const submitBtn = document.getElementById('submitBtn');
-    const hoursInput = document.getElementById('hoursInput');
-    const woInput = document.getElementById('woInput');
-    const robotCheck = document.getElementById('robotCheck');
-    const weekLabel = document.getElementById('weekLabel');
-    const calendarModal = document.getElementById('calendarModal');
-    const calendarGrid = document.getElementById('calendarGrid');
-    const calMonthYear = document.getElementById('calMonthYear');
-
-    // --- 3. CALENDAR LOGIC ---
+    // --- 2. DATE & CALENDAR LOGIC ---
     function getMonday(d) {
         const date = new Date(d);
         const day = date.getDay();
@@ -54,51 +40,70 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCalViewDate = new Date(selectedMonday);
 
     function renderCalendar() {
-        calendarGrid.innerHTML = '';
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
         const year = currentCalViewDate.getFullYear();
         const month = currentCalViewDate.getMonth();
-        calMonthYear.textContent = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        document.getElementById('calMonthYear').textContent = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-        // Add empty spaces for first week
-        for (let i = 0; i < firstDay; i++) {
-            const empty = document.createElement('div');
-            calendarGrid.appendChild(empty);
-        }
+        for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
 
         for (let day = 1; day <= daysInMonth; day++) {
             const div = document.createElement('div');
             div.className = 'calendar-day';
             div.textContent = day;
-            div.addEventListener('click', () => {
-                const clicked = new Date(year, month, day);
-                selectedMonday = getMonday(clicked);
+            div.onclick = () => {
+                selectedMonday = getMonday(new Date(year, month, day));
                 updateWeekUI();
-                calendarModal.style.display = 'none';
-            });
-            calendarGrid.appendChild(div);
+                document.getElementById('calendarModal').style.display = 'none';
+            };
+            grid.appendChild(div);
         }
     }
 
-    document.getElementById('calendarBtn').addEventListener('click', () => {
-        renderCalendar();
-        calendarModal.style.display = 'flex';
-    });
-    document.getElementById('calPrevMonth').addEventListener('click', () => { currentCalViewDate.setMonth(currentCalViewDate.getMonth() - 1); renderCalendar(); });
-    document.getElementById('calNextMonth').addEventListener('click', () => { currentCalViewDate.setMonth(currentCalViewDate.getMonth() + 1); renderCalendar(); });
-    document.getElementById('calCancelBtn').addEventListener('click', () => calendarModal.style.display = 'none');
+    document.getElementById('calendarBtn').onclick = () => { renderCalendar(); document.getElementById('calendarModal').style.display = 'flex'; };
+    document.getElementById('calPrevMonth').onclick = () => { currentCalViewDate.setMonth(currentCalViewDate.getMonth() - 1); renderCalendar(); };
+    document.getElementById('calNextMonth').onclick = () => { currentCalViewDate.setMonth(currentCalViewDate.getMonth() + 1); renderCalendar(); };
+    document.getElementById('calCancelBtn').onclick = () => document.getElementById('calendarModal').style.display = 'none';
 
-    // --- 4. WEEK UI & DASHBOARD ---
-    function updateWeekUI() {
+    // --- 3. UI TOGGLE & CALC LOGIC ---
+    const actionSelect = document.getElementById('actionSelect');
+    actionSelect.onchange = () => {
+        const isGoal = actionSelect.value === 'GOAL';
+        document.getElementById('goalInputsWrapper').style.display = isGoal ? 'block' : 'none';
+        document.getElementById('progressInputsWrapper').style.display = isGoal ? 'none' : 'block';
+        document.getElementById('cheatsheetContainer').style.display = isGoal ? 'none' : 'block';
+    };
+
+    const serviceSelects = document.querySelectorAll('.service-select');
+    function updateCalc() {
+        let total = 0;
+        const tags = [];
+        serviceSelects.forEach(s => {
+            total += parseInt(s.value);
+            const tag = s.options[s.selectedIndex].dataset.tag;
+            if (tag !== "NONE") tags.push(tag);
+            // Disable used tags
+            Array.from(s.options).forEach(opt => {
+                if(opt.dataset.tag !== "NONE") {
+                    opt.disabled = tags.includes(opt.dataset.tag) && s.options[s.selectedIndex].dataset.tag !== opt.dataset.tag;
+                }
+            });
+        });
+        document.getElementById('calculatedTotalDisplay').textContent = `Calculated Minutes: ${total}`;
+    }
+    serviceSelects.forEach(s => s.onchange = updateCalc);
+
+    // --- 4. DATA SYNC & DASHBOARD ---
+    async function updateWeekUI() {
         const weekStr = selectedMonday.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        weekLabel.textContent = weekStr;
-        
+        document.getElementById('weekLabel').textContent = weekStr;
         const isCurrent = weekStr === getMonday(new Date()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        submitBtn.disabled = !isCurrent;
+        document.getElementById('submitBtn').disabled = !isCurrent;
         document.getElementById('lockWarning').style.display = isCurrent ? "none" : "block";
-
         fetchDashboardData(weekStr);
     }
 
@@ -107,11 +112,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) return;
 
         const stats = {};
+        const logs = [];
         data.forEach(log => {
-            const name = log.agent_name.split('|')[0];
-            const type = log.agent_name.includes('PROGRESS') ? 'p' : 'g';
+            const parts = log.agent_name.split('|');
+            const name = parts[0];
             if(!stats[name]) stats[name] = { g: 0, p: 0 };
-            stats[name][type] += log.target_minutes;
+            if(log.agent_name.includes('GOAL')) stats[name].g += log.target_minutes;
+            if(log.agent_name.includes('PROGRESS')) {
+                stats[name].p += log.target_minutes;
+                logs.push({ agent: name, wo: parts[2] || '??', tag: parts[3] || '??', min: log.target_minutes, time: log.created_at });
+            }
         });
 
         const list = document.getElementById('agentList');
@@ -121,43 +131,45 @@ document.addEventListener('DOMContentLoaded', () => {
             const per = g > 0 ? Math.round((p/g)*100) : 0;
             const li = document.createElement('li');
             li.className = 'agent-item';
-            li.innerHTML = `<strong>${agent}</strong>: ${p}/${g}m (${per}%) <div style="background:#444; height:6px; border-radius:3px; margin-top:5px;"><div style="background:var(--accent); width:${Math.min(per, 100)}%; height:100%;"></div></div>`;
+            li.innerHTML = `<strong>${agent}</strong>: ${p}/${g}m (${per}%) <div style="background:#444; height:8px; border-radius:4px; margin-top:5px;"><div style="background:var(--accent); width:${Math.min(per, 100)}%; height:100%;"></div></div>`;
             list.appendChild(li);
+        });
+
+        const audit = document.getElementById('auditLogBody');
+        audit.innerHTML = '';
+        logs.sort((a,b) => new Date(b.time) - new Date(a.time)).forEach(l => {
+            audit.innerHTML += `<tr><td>${l.agent}</td><td>${l.wo}</td><td>${l.tag}</td><td>${l.min}</td><td>${new Date(l.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td></tr>`;
         });
     }
 
-    // --- 5. LOGIC & EVENTS ---
-    actionSelect.addEventListener('change', () => {
-        const isGoal = actionSelect.value === 'GOAL';
-        document.getElementById('goalInputsWrapper').style.display = isGoal ? 'block' : 'none';
-        document.getElementById('progressInputsWrapper').style.display = isGoal ? 'none' : 'block';
-        document.getElementById('cheatsheetContainer').style.display = isGoal ? 'none' : 'block';
-    });
-
-    submitBtn.addEventListener('click', async () => {
-        if (!agentSelect.value || !robotCheck.checked) return alert("Select agent and check robot box!");
+    document.getElementById('submitBtn').onclick = async () => {
+        if (!document.getElementById('agentSelect').value || !document.getElementById('robotCheck').checked) return alert("Missing info!");
         
         let mins = 0;
-        let dbName = `${agentSelect.value}|${actionSelect.value}`;
+        let dbName = `${document.getElementById('agentSelect').value}|${actionSelect.value}`;
 
         if (actionSelect.value === 'GOAL') {
-            mins = Math.round((parseFloat(hoursInput.value) * 60) * 0.81);
+            mins = Math.round((parseFloat(document.getElementById('hoursInput').value) * 60) * 0.81);
         } else {
-            document.querySelectorAll('.service-select').forEach(s => mins += parseInt(s.value));
-            dbName += `|WO:${woInput.value}`;
+            const tags = [];
+            serviceSelects.forEach(s => { 
+                mins += parseInt(s.value); 
+                const tag = s.options[s.selectedIndex].dataset.tag;
+                if(tag !== "NONE") tags.push(tag);
+            });
+            dbName += `|WO:${document.getElementById('woInput').value}|${tags.join('+')}`;
         }
 
-        submitBtn.textContent = "Syncing...";
-        const { error } = await _supabase.from('utilization_logs').insert([{ agent_name: dbName, target_minutes: mins, week_of: weekLabel.textContent }]);
-        
-        if (!error) {
-            alert("Logged!");
-            hoursInput.value = ''; woInput.value = ''; robotCheck.checked = false;
-            fetchDashboardData(weekLabel.textContent);
-        }
-        submitBtn.textContent = "Submit Data";
-    });
+        const { error } = await _supabase.from('utilization_logs').insert([{ agent_name: dbName, target_minutes: mins, week_of: document.getElementById('weekLabel').textContent }]);
+        if (!error) { updateWeekUI(); document.getElementById('robotCheck').checked = false; }
+    };
 
-    // Start App
+    // --- 5. ADMIN ---
+    document.getElementById('secretLogo').onclick = () => document.getElementById('passwordModal').style.display = 'flex';
+    document.getElementById('authSubmitBtn').onclick = async () => {
+        const { data } = await _supabase.from('precinct_secrets').select('*').eq('key_value', document.getElementById('secretCodeInput').value);
+        if(data?.length) { document.getElementById('passwordModal').style.display='none'; document.getElementById('adminPanel').style.display='block'; }
+    };
+
     updateWeekUI();
 });
