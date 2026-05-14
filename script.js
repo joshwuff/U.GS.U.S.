@@ -39,9 +39,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedMonday = getMonday(new Date());
     let currentCalViewDate = new Date(selectedMonday);
 
+    // FIX: Dashboard Navigation Buttons
+    document.getElementById('prevWeekBtn').onclick = () => { selectedMonday.setDate(selectedMonday.getDate() - 7); updateWeekUI(); };
+    document.getElementById('nextWeekBtn').onclick = () => { selectedMonday.setDate(selectedMonday.getDate() + 7); updateWeekUI(); };
+    document.getElementById('currentWeekBtn').onclick = () => { selectedMonday = getMonday(new Date()); updateWeekUI(); };
+
+    // FIX: Row-Selecting Calendar Logic
     function renderCalendar() {
         const grid = document.getElementById('calendarGrid');
         grid.innerHTML = '';
+        grid.className = 'calendar-body'; // Use the new row-based layout
+
         const year = currentCalViewDate.getFullYear();
         const month = currentCalViewDate.getMonth();
         document.getElementById('calMonthYear').textContent = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -49,22 +57,54 @@ document.addEventListener('DOMContentLoaded', () => {
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-        for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
+        let currentDay = 1;
+        let currentWeekRow = document.createElement('div');
+        currentWeekRow.className = 'calendar-row';
 
-        for (let day = 1; day <= daysInMonth; day++) {
+        // Add empty spaces for the first week
+        for (let i = 0; i < firstDay; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'calendar-day empty';
+            currentWeekRow.appendChild(empty);
+        }
+
+        while (currentDay <= daysInMonth) {
             const div = document.createElement('div');
             div.className = 'calendar-day';
-            div.textContent = day;
-            div.onclick = () => {
-                selectedMonday = getMonday(new Date(year, month, day));
-                updateWeekUI();
-                document.getElementById('calendarModal').style.display = 'none';
-            };
-            grid.appendChild(div);
+            div.textContent = currentDay;
+            currentWeekRow.appendChild(div);
+
+            // If the row is full (Saturday) OR it's the last day of the month
+            if (currentWeekRow.children.length === 7 || currentDay === daysInMonth) {
+                
+                // Fill any remaining empty slots at the end of the month
+                while (currentWeekRow.children.length < 7) {
+                    const empty = document.createElement('div');
+                    empty.className = 'calendar-day empty';
+                    currentWeekRow.appendChild(empty);
+                }
+                
+                // Capture the date for this specific row
+                const refDate = new Date(year, month, currentDay - 1); 
+                
+                // Make the ENTIRE ROW clickable
+                currentWeekRow.onclick = () => {
+                    selectedMonday = getMonday(refDate);
+                    updateWeekUI();
+                    document.getElementById('calendarModal').style.display = 'none';
+                };
+                
+                grid.appendChild(currentWeekRow);
+                
+                // Start a new row
+                currentWeekRow = document.createElement('div');
+                currentWeekRow.className = 'calendar-row';
+            }
+            currentDay++;
         }
     }
 
-    document.getElementById('calendarBtn').onclick = () => { renderCalendar(); document.getElementById('calendarModal').style.display = 'flex'; };
+    document.getElementById('calendarBtn').onclick = () => { currentCalViewDate = new Date(selectedMonday); renderCalendar(); document.getElementById('calendarModal').style.display = 'flex'; };
     document.getElementById('calPrevMonth').onclick = () => { currentCalViewDate.setMonth(currentCalViewDate.getMonth() - 1); renderCalendar(); };
     document.getElementById('calNextMonth').onclick = () => { currentCalViewDate.setMonth(currentCalViewDate.getMonth() + 1); renderCalendar(); };
     document.getElementById('calCancelBtn').onclick = () => document.getElementById('calendarModal').style.display = 'none';
@@ -122,6 +162,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 stats[name].p += log.target_minutes;
                 logs.push({ agent: name, wo: parts[2] || '??', tag: parts[3] || '??', min: log.target_minutes, time: log.created_at });
             }
+            if(log.agent_name.includes('ADMIN_OVERRIDE')) {
+                const action = parts[1];
+                if (action === 'GOAL') stats[name].g = log.target_minutes;
+                if (action === 'PROGRESS') stats[name].p = log.target_minutes;
+            }
         });
 
         const list = document.getElementById('agentList');
@@ -167,13 +212,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 5. ADMIN ---
     document.getElementById('secretLogo').onclick = () => document.getElementById('passwordModal').style.display = 'flex';
     
-    // Auth Modal Buttons
     document.getElementById('authSubmitBtn').onclick = async () => {
         const { data } = await _supabase.from('precinct_secrets').select('*').eq('key_value', document.getElementById('secretCodeInput').value);
         if(data?.length) { 
             document.getElementById('passwordModal').style.display='none'; 
             document.getElementById('adminPanel').style.display='block'; 
-            document.getElementById('secretCodeInput').value = ''; // Clear password
+            document.getElementById('secretCodeInput').value = ''; 
         } else {
             alert("Access Denied.");
         }
@@ -183,10 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('secretCodeInput').value = '';
     };
     
-    // Close Admin Panel
     document.getElementById('closeAdminBtn').onclick = () => document.getElementById('adminPanel').style.display = 'none';
 
-    // Force Update Logic
     document.getElementById('adminOverrideBtn').onclick = async () => {
         const agent = document.getElementById('adminAgentSelect').value;
         const action = document.getElementById('adminActionSelect').value;
@@ -204,7 +246,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Wipe Week Logic
     document.getElementById('resetDataBtn').onclick = async () => {
         const week = document.getElementById('weekLabel').textContent;
         if(!confirm(`CRITICAL WARNING: Are you sure you want to completely wipe all data for the week of ${week}? This cannot be undone.`)) return;
