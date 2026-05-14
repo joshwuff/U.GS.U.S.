@@ -58,7 +58,7 @@ function getLoginHTML(errorMessage) {
       <title>U.GS.U.S. - Secure Login</title>
       <style>
         body { 
-            background-color: #f0f0f0; 
+            background-color: #111111; 
             font-family: Arial, sans-serif; 
             display: flex; 
             flex-direction: column; 
@@ -68,6 +68,7 @@ function getLoginHTML(errorMessage) {
             margin: 0; 
             padding: 20px;
             box-sizing: border-box;
+            color: white;
         }
         .login-logo { 
             width: 100%;
@@ -80,11 +81,13 @@ function getLoginHTML(errorMessage) {
             max-width: 300px; 
             padding: 12px; 
             font-size: 16px; 
-            border: 1px solid #ccc; 
+            border: 1px solid #444; 
             border-radius: 4px; 
             margin-bottom: 15px; 
             text-align: center; 
             box-sizing: border-box;
+            background: #222;
+            color: white;
         }
         button { 
             background-color: #f57c00; 
@@ -99,19 +102,19 @@ function getLoginHTML(errorMessage) {
             box-sizing: border-box;
         }
         button:hover { background-color: #e66a00; }
-        .error { color: #d32f2f; margin-top: 15px; font-size: 14px; font-weight: bold; }
+        .error { color: #ff5252; margin-top: 15px; font-size: 14px; font-weight: bold; }
       </style>
     </head>
     <body>
       <img src="/U.GS.U.S-logo.png" alt="U.GS.U.S. Logo" class="login-logo">
-      <h2 style="color: #333; margin-bottom: 20px;">U.GS.U.S. Portal</h2>
+      <h2 style="margin-bottom: 20px;">U.GS.U.S. Portal</h2>
       
       <form method="POST" action="/login" style="display:flex; flex-direction:column; align-items:center; width:100%;">
         <input type="password" name="password" class="login-input" placeholder="Enter Precinct Password" required autofocus autocomplete="off">
         <button type="submit">Access System</button>
       </form>
       
-      <div class="error">\${errorMessage}</div>
+      ${errorMessage ? `<div class="error">${errorMessage}</div>` : ""}
     </body>
     </html>
   `;
