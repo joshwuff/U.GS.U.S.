@@ -5,21 +5,24 @@ body {
     padding: 0;
 }
 
-/* NEW LOGIN SCREEN STYLES */
+/* --- LOGIN SCREEN STYLES --- */
 .login-screen {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    min-height: 100vh; /* Perfectly centers it vertically */
     width: 100%;
     padding: 20px;
     box-sizing: border-box;
+    background-color: #f0f0f0;
 }
 
 .login-logo {
-    max-width: 250px;
-    margin-bottom: 30px;
+    width: 100%;
+    max-width: 600px; /* This makes it HUGE on desktop, but keeps it responsive on mobile! */
+    height: auto;
+    margin-bottom: 20px;
 }
 
 .login-input {
@@ -40,7 +43,7 @@ body {
     display: none;
 }
 
-/* MAIN APP WRAPPER */
+/* --- MAIN APP WRAPPER --- */
 #mainApp {
     display: flex;
     flex-direction: column;
@@ -48,12 +51,13 @@ body {
     padding: 20px;
     box-sizing: border-box;
     min-height: 100vh;
+    width: 100%;
 }
 
 .logo {
     display: block;
-    margin: 0 auto 30px;
-    max-width: 250px;
+    margin: 0 auto 20px;
+    max-width: 250px; /* Keeps the main app logo normal size so the layout doesn't break */
     height: auto;
     cursor: default; 
     user-select: none;
