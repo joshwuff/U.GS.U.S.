@@ -52,18 +52,25 @@
                 <div class="wo-calc-container">
                     <div class="input-group" style="width: 100%;">
                         <label for="woInput" class="input-label">Last 4 of WO</label>
-                        <input type="text" inputmode="numeric" id="woInput" placeholder="1234" maxlength="4">
+                        <input type="text" inputmode="numeric" id="woInput" placeholder="e.g., 1234" maxlength="4">
                     </div>
                     <div class="wo-calc-row">
-                        <select class="service-select"><option value="0">Tag 1</option><option value="57">GSDB (57m)</option><option value="49">GSOSR (49m)</option></select>
-                        <select class="service-select"><option value="0">Tag 2</option><option value="57">GSDB (57m)</option><option value="49">GSOSR (49m)</option></select>
+                        <select class="service-select" autocomplete="off"><option value="0">-- Tag 1 --</option><option value="57">GSDB (57m)</option><option value="49">GSOSR (49m)</option><option value="25">GSDI (25m)</option></select>
+                        <select class="service-select" autocomplete="off"><option value="0">-- Tag 2 --</option><option value="57">GSDB (57m)</option><option value="49">GSOSR (49m)</option><option value="25">GSDI (25m)</option></select>
                     </div>
+                    <div id="calculatedTotalDisplay" style="margin-top:10px; font-weight:bold; color:var(--accent);">Calculated Minutes: 0</div>
                 </div>
             </div>
 
             <div class="fake-recaptcha">
-                <input type="checkbox" id="robotCheck">
-                <span>I'm not a robot</span>
+                <div class="fake-recaptcha-left">
+                    <input type="checkbox" id="robotCheck">
+                    <span>I'm not a robot</span>
+                </div>
+                <div class="fake-recaptcha-right">
+                    <div class="icon">↻</div>
+                    <div class="text">reCAPTCHA</div>
+                </div>
             </div>
 
             <button id="submitBtn" class="primary-btn">Submit Data</button>
@@ -75,21 +82,50 @@
             <div class="cheatsheet-grid">
                 <span>GSDB</span><span>57m</span>
                 <span>GSOSR</span><span>49m</span>
+                <span>GSDI</span><span>25m</span>
             </div>
         </div>
     </div>
 
     <div class="dashboard">
-        <h2>Precinct Totals</h2>
-        <div class="week-controls">
-            <button id="prevWeekBtn" class="nav-btn">❮</button>
-            <span id="weekLabel">Loading...</span>
-            <button id="nextWeekBtn" class="nav-btn">❯</button>
+        <div class="dashboard-header">
+            <h2>Precinct Totals</h2>
+            <div class="week-controls">
+                <button id="prevWeekBtn" class="nav-btn">❮</button>
+                <span id="weekLabel">Loading...</span>
+                <button id="calendarBtn" class="nav-btn">📅</button>
+                <button id="nextWeekBtn" class="nav-btn">❯</button>
+                <button id="currentWeekBtn" class="nav-btn">↺</button>
+            </div>
         </div>
-        <ul id="agentList"></ul>
+        <ul id="agentList" class="agent-list"></ul>
     </div>
 
-    <div class="footer-note">v28 | joshwuff.com</div>
+    <div id="calendarModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="calendar-header">
+                <button id="calPrevMonth" class="nav-btn">❮</button>
+                <span id="calMonthYear"></span>
+                <button id="calNextMonth" class="nav-btn">❯</button>
+            </div>
+            <div class="calendar-grid-header">
+                <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+            </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+            <button id="calCancelBtn" class="cancel-btn">Cancel</button>
+        </div>
+    </div>
+
+    <div id="passwordModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>ADMIN ACCESS</h3>
+            <input type="password" id="secretCodeInput" placeholder="Password">
+            <button id="authSubmitBtn" class="primary-btn">Enter</button>
+            <button id="authCancelBtn" class="cancel-btn">Cancel</button>
+        </div>
+    </div>
+
+    <div class="footer-note">v29 | joshwuff.com</div>
 
     <script src="script.js"></script>
 </body>
