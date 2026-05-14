@@ -1,10 +1,8 @@
-// functions/_middleware.js
-
 export async function onRequest(context) {
   const { request } = context;
 
   // --- SET YOUR UNIVERSAL PRECINCT PASSWORD HERE ---
-  const PRECINCT_PASSWORD = "Agents4ssembl3";
+  const PRECINCT_PASSWORD = "Agents4ssembl3"; 
   // -------------------------------------------------
 
   // We use 'precinct' as the username, and your password
