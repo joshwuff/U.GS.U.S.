@@ -1,4 +1,4 @@
-const APP_VERSION = "4.26";
+const APP_VERSION = "4.27";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -9,55 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const versionDisplay = document.getElementById('appVersionDisplay');
     if (versionDisplay) versionDisplay.textContent = APP_VERSION;
-
-    // --- NEW: THE JAVASCRIPT LOCK ---
-    let isAuthenticated = false;
-    // --------------------------------
-
-    // --- FRONT DOOR LOGIN LOGIC ---
-    const loginScreen = document.getElementById('loginScreen');
-    const mainApp = document.getElementById('mainApp');
-    const mainPasswordInput = document.getElementById('mainPasswordInput');
-    const portalLoginBtn = document.getElementById('loginBtn');
-    const loginError = document.getElementById('loginError');
-
-    async function attemptLogin() {
-        const guess = mainPasswordInput.value;
-        if (!guess) return;
-
-        portalLoginBtn.disabled = true;
-        portalLoginBtn.textContent = "Checking...";
-        loginError.style.display = 'none';
-
-        // Send the guess to Supabase to check for a match
-        const { data, error } = await _supabase
-            .from('precinct_secrets')
-            .select('*')
-            .eq('key_name', 'front_door')
-            .eq('key_value', guess);
-
-        if (data && data.length > 0) {
-            // Password is correct! Unlock the JavaScript logic!
-            isAuthenticated = true; 
-            
-            loginScreen.style.display = 'none';
-            mainApp.style.display = 'flex';
-            fetchDashboardData(); 
-        } else {
-            // Password is wrong or network error
-            loginError.style.display = 'block';
-            mainPasswordInput.value = '';
-            portalLoginBtn.disabled = false;
-            portalLoginBtn.textContent = "Access System";
-        }
-    }
-
-    if (portalLoginBtn) {
-        portalLoginBtn.addEventListener('click', attemptLogin);
-        mainPasswordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !portalLoginBtn.disabled) attemptLogin();
-        });
-    }
 
     // App Elements
     const submitBtn = document.getElementById('submitBtn');
@@ -134,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedWeekString = actualCurrentWeekString;
     let currentCalViewDate = new Date(selectedMonday);
 
-    function initWeekUI() {
+    function updateWeekUI() {
         if (!weekLabel) return;
         selectedWeekString = formatDateString(selectedMonday);
         weekLabel.textContent = `${selectedWeekString}`;
@@ -154,12 +105,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if(robotCheck) robotCheck.disabled = false;
             if(lockWarning) lockWarning.style.display = "none";
         }
-    }
-
-    function updateWeekUI() {
-        initWeekUI();
-        // Even if they unhide the UI, they can't fetch data if not logged in
-        if (isAuthenticated) fetchDashboardData();
+        
+        // Immediately fetch data, no login to wait for!
+        fetchDashboardData();
     }
 
     if(prevWeekBtn) prevWeekBtn.addEventListener('click', () => { selectedMonday.setDate(selectedMonday.getDate() - 7); updateWeekUI(); });
@@ -283,9 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let logoClickTimer;
     if(secretLogo) {
         secretLogo.addEventListener('click', () => {
-            // Cannot trigger admin login if you haven't passed the first gate!
-            if (!isAuthenticated) return; 
-
             logoClickCount++;
             clearTimeout(logoClickTimer);
             logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 2000);
@@ -304,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authSubmitBtn.disabled = true;
         authSubmitBtn.textContent = "Verifying...";
 
+        // Still check the Admin Password against Supabase so no one accidentally wipes data!
         const { data, error } = await _supabase
             .from('precinct_secrets')
             .select('*')
@@ -347,9 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- SUPABASE LOGIC ---
     async function fetchDashboardData() {
-        // LOCK: Do not fetch data if the user bypassed the login screen
-        if (!isAuthenticated) return;
-
         const { data, error } = await _supabase.from('utilization_logs').select('*').eq('week_of', selectedWeekString);
         if (error) {
             agentListElement.innerHTML = '<li class="agent-item" style="color:#d32f2f; text-align:center;">Error loading database.</li>';
@@ -453,9 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function submitData() {
-        // LOCK: Do not allow submission if bypassed
-        if (!isAuthenticated) return;
-
         const selectedAgent = agentSelect.value;
         const action = actionSelect.value;
 
@@ -537,9 +477,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function forceUpdateAgent() {
-        // LOCK: Do not allow admin updates if bypassed
-        if (!isAuthenticated) return;
-
         const targetAgent = adminAgentSelect.value;
         const targetAction = adminActionSelect.value;
         const exactMinutes = adminValueInput.value;
@@ -580,9 +517,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function manualReset() {
-        // LOCK: Do not allow resets if bypassed
-        if (!isAuthenticated) return;
-
         if(confirm(`Are you sure you want to clear ALL cloud data for the week of ${selectedWeekString}?`)) {
             if(confirm("FINAL WARNING: Wiping the database now.")) {
                 const { error } = await _supabase.from('utilization_logs').delete().eq('week_of', selectedWeekString);
@@ -599,5 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(resetDataBtn) resetDataBtn.addEventListener('click', manualReset);
 
     updateDropdownOptions();
-    initWeekUI(); 
+    
+    // Automatically load the week UI and fetch the data on startup!
+    updateWeekUI(); 
 });
