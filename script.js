@@ -1,4 +1,4 @@
-const APP_VERSION = "4.23";
+const APP_VERSION = "4.25";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -128,26 +128,30 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedWeekString = actualCurrentWeekString;
     let currentCalViewDate = new Date(selectedMonday);
 
-    function updateWeekUI() {
+    function initWeekUI() {
         if (!weekLabel) return;
         selectedWeekString = formatDateString(selectedMonday);
         weekLabel.textContent = `${selectedWeekString}`;
 
         if (selectedWeekString !== actualCurrentWeekString) {
-            submitBtn.disabled = true;
-            hoursInput.disabled = true;
-            woInput.disabled = true;
+            if(submitBtn) submitBtn.disabled = true;
+            if(hoursInput) hoursInput.disabled = true;
+            if(woInput) woInput.disabled = true;
             serviceSelects.forEach(s => s.disabled = true);
-            robotCheck.disabled = true;
-            lockWarning.style.display = "block";
+            if(robotCheck) robotCheck.disabled = true;
+            if(lockWarning) lockWarning.style.display = "block";
         } else {
-            submitBtn.disabled = false;
-            hoursInput.disabled = false;
-            woInput.disabled = false;
+            if(submitBtn) submitBtn.disabled = false;
+            if(hoursInput) hoursInput.disabled = false;
+            if(woInput) woInput.disabled = false;
             serviceSelects.forEach(s => s.disabled = false);
-            robotCheck.disabled = false;
-            lockWarning.style.display = "none";
+            if(robotCheck) robotCheck.disabled = false;
+            if(lockWarning) lockWarning.style.display = "none";
         }
+    }
+
+    function updateWeekUI() {
+        initWeekUI();
         fetchDashboardData();
     }
 
@@ -574,5 +578,5 @@ document.addEventListener('DOMContentLoaded', () => {
     if(resetDataBtn) resetDataBtn.addEventListener('click', manualReset);
 
     updateDropdownOptions();
-    // Week UI will update automatically after a successful login
+    initWeekUI(); 
 });
