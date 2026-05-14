@@ -1,4 +1,4 @@
-const APP_VERSION = "4.25";
+const APP_VERSION = "4.26";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -9,6 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const versionDisplay = document.getElementById('appVersionDisplay');
     if (versionDisplay) versionDisplay.textContent = APP_VERSION;
+
+    // --- NEW: THE JAVASCRIPT LOCK ---
+    let isAuthenticated = false;
+    // --------------------------------
 
     // --- FRONT DOOR LOGIN LOGIC ---
     const loginScreen = document.getElementById('loginScreen');
@@ -33,7 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .eq('key_value', guess);
 
         if (data && data.length > 0) {
-            // Password is correct!
+            // Password is correct! Unlock the JavaScript logic!
+            isAuthenticated = true; 
+            
             loginScreen.style.display = 'none';
             mainApp.style.display = 'flex';
             fetchDashboardData(); 
@@ -152,7 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateWeekUI() {
         initWeekUI();
-        fetchDashboardData();
+        // Even if they unhide the UI, they can't fetch data if not logged in
+        if (isAuthenticated) fetchDashboardData();
     }
 
     if(prevWeekBtn) prevWeekBtn.addEventListener('click', () => { selectedMonday.setDate(selectedMonday.getDate() - 7); updateWeekUI(); });
@@ -276,6 +283,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let logoClickTimer;
     if(secretLogo) {
         secretLogo.addEventListener('click', () => {
+            // Cannot trigger admin login if you haven't passed the first gate!
+            if (!isAuthenticated) return; 
+
             logoClickCount++;
             clearTimeout(logoClickTimer);
             logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 2000);
@@ -294,7 +304,6 @@ document.addEventListener('DOMContentLoaded', () => {
         authSubmitBtn.disabled = true;
         authSubmitBtn.textContent = "Verifying...";
 
-        // Send the admin guess to Supabase
         const { data, error } = await _supabase
             .from('precinct_secrets')
             .select('*')
@@ -338,6 +347,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- SUPABASE LOGIC ---
     async function fetchDashboardData() {
+        // LOCK: Do not fetch data if the user bypassed the login screen
+        if (!isAuthenticated) return;
+
         const { data, error } = await _supabase.from('utilization_logs').select('*').eq('week_of', selectedWeekString);
         if (error) {
             agentListElement.innerHTML = '<li class="agent-item" style="color:#d32f2f; text-align:center;">Error loading database.</li>';
@@ -441,6 +453,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function submitData() {
+        // LOCK: Do not allow submission if bypassed
+        if (!isAuthenticated) return;
+
         const selectedAgent = agentSelect.value;
         const action = actionSelect.value;
 
@@ -522,6 +537,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function forceUpdateAgent() {
+        // LOCK: Do not allow admin updates if bypassed
+        if (!isAuthenticated) return;
+
         const targetAgent = adminAgentSelect.value;
         const targetAction = adminActionSelect.value;
         const exactMinutes = adminValueInput.value;
@@ -562,6 +580,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function manualReset() {
+        // LOCK: Do not allow resets if bypassed
+        if (!isAuthenticated) return;
+
         if(confirm(`Are you sure you want to clear ALL cloud data for the week of ${selectedWeekString}?`)) {
             if(confirm("FINAL WARNING: Wiping the database now.")) {
                 const { error } = await _supabase.from('utilization_logs').delete().eq('week_of', selectedWeekString);
