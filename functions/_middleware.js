@@ -3,7 +3,7 @@ export async function onRequest(context) {
   const url = new URL(request.url);
 
   // --- YOUR NEW UNIVERSAL PRECINCT PASSWORD ---
-  const PRECINCT_PASSWORD = "goocat"; 
+  const PRECINCT_PASSWORD = "Agents4ssembl32026!"; 
   const COOKIE_NAME = "ugsus_secure_auth";
   // --------------------------------------------
 
