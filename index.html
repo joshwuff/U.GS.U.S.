@@ -36,35 +36,82 @@
             <div class="input-group">
                 <label for="actionSelect" class="input-label">What are you doing?</label>
                 <select id="actionSelect" autocomplete="off">
-                    <option value="GOAL">1. Set Scheduled Target</option>
-                    <option value="PROGRESS">2. Log Work Order</option>
+                    <option value="GOAL">1. Set Scheduled Target for the Week</option>
+                    <option value="PROGRESS">2. Log a Completed Work Order</option>
                 </select>
             </div>
 
             <div id="goalInputsWrapper">
                 <div class="input-group">
                     <label for="hoursInput" class="input-label">Scheduled Hours</label>
-                    <input type="text" inputmode="decimal" id="hoursInput" placeholder="e.g., 35.5">
+                    <input type="text" inputmode="decimal" id="hoursInput" placeholder="e.g., 35.5" autocomplete="off">
                 </div>
+                <p class="formula-text">Math: (Hours x 60) x 0.81 = Target Minutes</p>
             </div>
 
             <div id="progressInputsWrapper" style="display: none;">
                 <div class="wo-calc-container">
                     <div class="input-group" style="width: 100%;">
-                        <label for="woInput" class="input-label">Last 4 of WO</label>
-                        <input type="text" inputmode="numeric" id="woInput" placeholder="e.g., 1234" maxlength="4">
+                        <label for="woInput" class="input-label">Last 4 of Work Order</label>
+                        <input type="text" inputmode="numeric" id="woInput" placeholder="e.g., 1234" maxlength="4" autocomplete="off">
+                    </div>
+                    
+                    <label class="input-label" style="text-align: left; margin-left: 5%;">Select Services (Up to 4)</label>
+                    <div class="wo-calc-row">
+                        <select class="service-select" autocomplete="off">
+                            <option value="0" data-tag="NONE">-- Tag 1 --</option>
+                            <option value="57" data-tag="GSDB/GSRD">GSDB (57m)</option>
+                            <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
+                            <option value="49" data-tag="GSIR">GSIR (49m)</option>
+                            <option value="25" data-tag="GSDI">GSDI (25m)</option>
+                            <option value="20" data-tag="GSOI/GSPW">GSOI (20m)</option>
+                            <option value="18" data-tag="GSHW/GSHD">GSHW (18m)</option>
+                            <option value="12" data-tag="GSSW">GSSW (12m)</option>
+                            <option value="4" data-tag="GSWUR">GSWUR (4m)</option>
+                        </select>
+                        <select class="service-select" autocomplete="off">
+                            <option value="0" data-tag="NONE">-- Tag 2 --</option>
+                            <option value="57" data-tag="GSDB/GSRD">GSDB (57m)</option>
+                            <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
+                            <option value="49" data-tag="GSIR">GSIR (49m)</option>
+                            <option value="25" data-tag="GSDI">GSDI (25m)</option>
+                            <option value="20" data-tag="GSOI/GSPW">GSOI (20m)</option>
+                            <option value="18" data-tag="GSHW/GSHD">GSHW (18m)</option>
+                            <option value="12" data-tag="GSSW">GSSW (12m)</option>
+                            <option value="4" data-tag="GSWUR">GSWUR (4m)</option>
+                        </select>
                     </div>
                     <div class="wo-calc-row">
-                        <select class="service-select" autocomplete="off"><option value="0">-- Tag 1 --</option><option value="57">GSDB (57m)</option><option value="49">GSOSR (49m)</option><option value="25">GSDI (25m)</option></select>
-                        <select class="service-select" autocomplete="off"><option value="0">-- Tag 2 --</option><option value="57">GSDB (57m)</option><option value="49">GSOSR (49m)</option><option value="25">GSDI (25m)</option></select>
+                        <select class="service-select" autocomplete="off">
+                            <option value="0" data-tag="NONE">-- Tag 3 --</option>
+                            <option value="57" data-tag="GSDB/GSRD">GSDB (57m)</option>
+                            <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
+                            <option value="49" data-tag="GSIR">GSIR (49m)</option>
+                            <option value="25" data-tag="GSDI">GSDI (25m)</option>
+                            <option value="20" data-tag="GSOI/GSPW">GSOI (20m)</option>
+                            <option value="18" data-tag="GSHW/GSHD">GSHW (18m)</option>
+                            <option value="12" data-tag="GSSW">GSSW (12m)</option>
+                            <option value="4" data-tag="GSWUR">GSWUR (4m)</option>
+                        </select>
+                        <select class="service-select" autocomplete="off">
+                            <option value="0" data-tag="NONE">-- Tag 4 --</option>
+                            <option value="57" data-tag="GSDB/GSRD">GSDB (57m)</option>
+                            <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
+                            <option value="49" data-tag="GSIR">GSIR (49m)</option>
+                            <option value="25" data-tag="GSDI">GSDI (25m)</option>
+                            <option value="20" data-tag="GSOI/GSPW">GSOI (20m)</option>
+                            <option value="18" data-tag="GSHW/GSHD">GSHW (18m)</option>
+                            <option value="12" data-tag="GSSW">GSSW (12m)</option>
+                            <option value="4" data-tag="GSWUR">GSWUR (4m)</option>
+                        </select>
                     </div>
-                    <div id="calculatedTotalDisplay" style="margin-top:10px; font-weight:bold; color:var(--accent);">Calculated Minutes: 0</div>
+                    <div id="calculatedTotalDisplay" class="wo-total-display">Calculated Minutes: 0</div>
                 </div>
             </div>
 
             <div class="fake-recaptcha">
                 <div class="fake-recaptcha-left">
-                    <input type="checkbox" id="robotCheck">
+                    <input type="checkbox" id="robotCheck" autocomplete="off">
                     <span>I'm not a robot</span>
                 </div>
                 <div class="fake-recaptcha-right">
@@ -73,6 +120,7 @@
                 </div>
             </div>
 
+            <p id="lockWarning" class="lock-warning">Public inputs locked. Use Admin Panel or return to current week.</p>
             <button id="submitBtn" class="primary-btn">Submit Data</button>
             <p id="resultOutput" class="result-output">Ready to sync...</p>
         </div>
@@ -80,9 +128,14 @@
         <div id="cheatsheetContainer" class="cheatsheet-container" style="display: none;">
             <h3>Service Grid</h3>
             <div class="cheatsheet-grid">
-                <span>GSDB</span><span>57m</span>
-                <span>GSOSR</span><span>49m</span>
-                <span>GSDI</span><span>25m</span>
+                <span class="cs-tag">GSDB / GSRD</span> <span class="cs-min">57m</span>
+                <span class="cs-tag">GSOSR</span> <span class="cs-min">49m</span>
+                <span class="cs-tag">GSIR</span> <span class="cs-min">49m</span>
+                <span class="cs-tag">GSDI</span> <span class="cs-min">25m</span>
+                <span class="cs-tag">GSOI / GSPW</span> <span class="cs-min">20m</span>
+                <span class="cs-tag">GSHW / GSHD</span> <span class="cs-min">18m</span>
+                <span class="cs-tag">GSSW</span> <span class="cs-min">12m</span>
+                <span class="cs-tag">GSWUR</span> <span class="cs-min">4m</span>
             </div>
         </div>
     </div>
@@ -91,14 +144,39 @@
         <div class="dashboard-header">
             <h2>Precinct Totals</h2>
             <div class="week-controls">
-                <button id="prevWeekBtn" class="nav-btn">❮</button>
-                <span id="weekLabel">Loading...</span>
-                <button id="calendarBtn" class="nav-btn">📅</button>
-                <button id="nextWeekBtn" class="nav-btn">❯</button>
-                <button id="currentWeekBtn" class="nav-btn">↺</button>
+                <button id="prevWeekBtn" class="nav-btn" title="Previous Week">❮</button>
+                <span class="week-label" id="weekLabel">Loading...</span>
+                <button id="calendarBtn" class="nav-btn" title="Select Week">📅</button>
+                <button id="nextWeekBtn" class="nav-btn" title="Next Week">❯</button>
+                <button id="currentWeekBtn" class="nav-btn" title="Jump to Current Week">↺</button>
             </div>
         </div>
-        <ul id="agentList" class="agent-list"></ul>
+        <ul class="agent-list" id="agentList">
+            <li class="agent-item">Connecting to database...</li>
+        </ul>
+    </div>
+
+    <div id="adminPanel" class="admin-panel" style="display: none;">
+        <span class="close-admin-btn" id="closeAdminBtn">✖</span>
+        <h3>🛡️ Precinct Admin Override</h3>
+        
+        <div class="admin-edit-group">
+            <select id="adminAgentSelect">
+                <option value="Alvan">Alvan</option><option value="Alejandro">Alejandro</option><option value="Justin">Justin</option><option value="Josh">Josh</option><option value="James">James</option><option value="Marrion">Marrion</option><option value="Rob">Rob</option><option value="Diana">Diana</option><option value="Kurt">Kurt</option><option value="G">G</option><option value="Arturo">Arturo</option>
+            </select>
+            <select id="adminActionSelect"><option value="GOAL">Target</option><option value="PROGRESS">Progress</option></select>
+            <input type="text" id="adminValueInput" placeholder="Mins">
+        </div>
+        <button id="adminOverrideBtn" class="admin-action-btn">Force Update</button>
+
+        <hr class="admin-divider">
+        <div class="audit-log-container">
+            <table class="audit-table">
+                <thead><tr><th>Agent</th><th>WO #</th><th>Services</th><th>Min</th><th>Time</th></tr></thead>
+                <tbody id="auditLogBody"></tbody>
+            </table>
+        </div>
+        <button id="resetDataBtn" class="admin-action-btn" style="background:#d32f2f; margin-top:20px;">Wipe Selected Week</button>
     </div>
 
     <div id="calendarModal" class="modal-overlay">
@@ -118,14 +196,14 @@
 
     <div id="passwordModal" class="modal-overlay">
         <div class="modal-content">
-            <h3>ADMIN ACCESS</h3>
+            <h3>ADMIN LOGIN</h3>
             <input type="password" id="secretCodeInput" placeholder="Password">
-            <button id="authSubmitBtn" class="primary-btn">Enter</button>
+            <button id="authSubmitBtn" class="primary-btn">Access</button>
             <button id="authCancelBtn" class="cancel-btn">Cancel</button>
         </div>
     </div>
 
-    <div class="footer-note">v29 | joshwuff.com</div>
+    <div class="footer-note">v4.30 | joshwuff.com</div>
 
     <script src="script.js"></script>
 </body>
