@@ -166,10 +166,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 5. ADMIN ---
     document.getElementById('secretLogo').onclick = () => document.getElementById('passwordModal').style.display = 'flex';
+    
+    // Auth Modal Buttons
     document.getElementById('authSubmitBtn').onclick = async () => {
         const { data } = await _supabase.from('precinct_secrets').select('*').eq('key_value', document.getElementById('secretCodeInput').value);
-        if(data?.length) { document.getElementById('passwordModal').style.display='none'; document.getElementById('adminPanel').style.display='block'; }
+        if(data?.length) { 
+            document.getElementById('passwordModal').style.display='none'; 
+            document.getElementById('adminPanel').style.display='block'; 
+            document.getElementById('secretCodeInput').value = ''; // Clear password
+        } else {
+            alert("Access Denied.");
+        }
+    };
+    document.getElementById('authCancelBtn').onclick = () => {
+        document.getElementById('passwordModal').style.display = 'none';
+        document.getElementById('secretCodeInput').value = '';
+    };
+    
+    // Close Admin Panel
+    document.getElementById('closeAdminBtn').onclick = () => document.getElementById('adminPanel').style.display = 'none';
+
+    // Force Update Logic
+    document.getElementById('adminOverrideBtn').onclick = async () => {
+        const agent = document.getElementById('adminAgentSelect').value;
+        const action = document.getElementById('adminActionSelect').value;
+        const mins = parseInt(document.getElementById('adminValueInput').value);
+        
+        if(isNaN(mins)) return alert("Please enter valid minutes.");
+
+        const dbName = `${agent}|${action}|ADMIN_OVERRIDE`;
+        const { error } = await _supabase.from('utilization_logs').insert([{ agent_name: dbName, target_minutes: mins, week_of: document.getElementById('weekLabel').textContent }]);
+        
+        if(!error) { 
+            alert("Force Update Successful!"); 
+            document.getElementById('adminValueInput').value = '';
+            updateWeekUI(); 
+        }
     };
 
+    // Wipe Week Logic
+    document.getElementById('resetDataBtn').onclick = async () => {
+        const week = document.getElementById('weekLabel').textContent;
+        if(!confirm(`CRITICAL WARNING: Are you sure you want to completely wipe all data for the week of ${week}? This cannot be undone.`)) return;
+        
+        const { error } = await _supabase.from('utilization_logs').delete().eq('week_of', week);
+        if(!error) { 
+            alert("Week wiped successfully."); 
+            updateWeekUI(); 
+        }
+    };
+
+    // Initialize App
     updateWeekUI();
 });
