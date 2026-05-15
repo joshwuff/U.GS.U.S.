@@ -1,4 +1,4 @@
-const APP_VERSION = "4.31";
+const APP_VERSION = "4.32";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -175,7 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             li.className = 'agent-item';
             
-            // --- RESTORED FAR-RIGHT STATS ALIGNMENT ---
             li.innerHTML = `
                 <div style="display:flex; justify-content:space-between; margin-bottom:6px; align-items: center;">
                     <strong style="font-size: 15px;">${agent}</strong>
@@ -191,7 +190,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const audit = document.getElementById('auditLogBody');
         audit.innerHTML = '';
         logs.sort((a,b) => new Date(b.time) - new Date(a.time)).forEach(l => {
-            audit.innerHTML += `<tr><td>${l.agent}</td><td>${l.wo}</td><td>${l.tag}</td><td>${l.min}</td><td>${new Date(l.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td></tr>`;
+            const dateObj = new Date(l.time);
+            const timeFormatted = dateObj.toLocaleDateString('en-US', {month: 'numeric', day: 'numeric'}) + " " + dateObj.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+            audit.innerHTML += `<tr><td>${l.agent}</td><td>${l.wo}</td><td>${l.tag}</td><td>${l.min}</td><td>${timeFormatted}</td></tr>`;
         });
     }
 
@@ -218,7 +219,17 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- 5. ADMIN ---
-    document.getElementById('secretLogo').onclick = () => document.getElementById('passwordModal').style.display = 'flex';
+    let logoClicks = 0;
+    let logoTimer;
+    document.getElementById('secretLogo').onclick = () => {
+        logoClicks++;
+        clearTimeout(logoTimer);
+        logoTimer = setTimeout(() => logoClicks = 0, 2000); // Resets if you wait too long between clicks
+        if (logoClicks >= 5) {
+            document.getElementById('passwordModal').style.display = 'flex';
+            logoClicks = 0; // Reset for next time
+        }
+    };
     
     document.getElementById('authSubmitBtn').onclick = async () => {
         const { data } = await _supabase.from('precinct_secrets').select('*').eq('key_value', document.getElementById('secretCodeInput').value);
