@@ -1,3 +1,5 @@
+const APP_VERSION = "4.31";
+
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
     'sb_publishable_3WRcMc4zjv-N-9oZry-SbA_MmRRKv1b'
@@ -5,6 +7,12 @@ const _supabase = supabase.createClient(
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    // --- 0. RESTORE MOTIVATIONAL FOOTER ---
+    const footerNote = document.querySelector('.footer-note');
+    if (footerNote) {
+        footerNote.innerHTML = `Target: 81% (0.81) | You can do it!!! | v${APP_VERSION}`;
+    }
+
     // --- 1. THEME ENGINE ---
     const toggleBtn = document.createElement('button');
     toggleBtn.className = 'theme-toggle-btn';
@@ -39,16 +47,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedMonday = getMonday(new Date());
     let currentCalViewDate = new Date(selectedMonday);
 
-    // FIX: Dashboard Navigation Buttons
     document.getElementById('prevWeekBtn').onclick = () => { selectedMonday.setDate(selectedMonday.getDate() - 7); updateWeekUI(); };
     document.getElementById('nextWeekBtn').onclick = () => { selectedMonday.setDate(selectedMonday.getDate() + 7); updateWeekUI(); };
     document.getElementById('currentWeekBtn').onclick = () => { selectedMonday = getMonday(new Date()); updateWeekUI(); };
 
-    // FIX: Row-Selecting Calendar Logic
     function renderCalendar() {
         const grid = document.getElementById('calendarGrid');
         grid.innerHTML = '';
-        grid.className = 'calendar-body'; // Use the new row-based layout
+        grid.className = 'calendar-body'; 
 
         const year = currentCalViewDate.getFullYear();
         const month = currentCalViewDate.getMonth();
@@ -61,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentWeekRow = document.createElement('div');
         currentWeekRow.className = 'calendar-row';
 
-        // Add empty spaces for the first week
         for (let i = 0; i < firstDay; i++) {
             const empty = document.createElement('div');
             empty.className = 'calendar-day empty';
@@ -74,20 +79,15 @@ document.addEventListener('DOMContentLoaded', () => {
             div.textContent = currentDay;
             currentWeekRow.appendChild(div);
 
-            // If the row is full (Saturday) OR it's the last day of the month
             if (currentWeekRow.children.length === 7 || currentDay === daysInMonth) {
-                
-                // Fill any remaining empty slots at the end of the month
                 while (currentWeekRow.children.length < 7) {
                     const empty = document.createElement('div');
                     empty.className = 'calendar-day empty';
                     currentWeekRow.appendChild(empty);
                 }
                 
-                // Capture the date for this specific row
                 const refDate = new Date(year, month, currentDay - 1); 
                 
-                // Make the ENTIRE ROW clickable
                 currentWeekRow.onclick = () => {
                     selectedMonday = getMonday(refDate);
                     updateWeekUI();
@@ -96,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 grid.appendChild(currentWeekRow);
                 
-                // Start a new row
                 currentWeekRow = document.createElement('div');
                 currentWeekRow.className = 'calendar-row';
             }
@@ -126,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
             total += parseInt(s.value);
             const tag = s.options[s.selectedIndex].dataset.tag;
             if (tag !== "NONE") tags.push(tag);
-            // Disable used tags
             Array.from(s.options).forEach(opt => {
                 if(opt.dataset.tag !== "NONE") {
                     opt.disabled = tags.includes(opt.dataset.tag) && s.options[s.selectedIndex].dataset.tag !== opt.dataset.tag;
@@ -176,7 +174,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const per = g > 0 ? Math.round((p/g)*100) : 0;
             const li = document.createElement('li');
             li.className = 'agent-item';
-            li.innerHTML = `<strong>${agent}</strong>: ${p}/${g}m (${per}%) <div style="background:#444; height:8px; border-radius:4px; margin-top:5px;"><div style="background:var(--accent); width:${Math.min(per, 100)}%; height:100%;"></div></div>`;
+            
+            // --- RESTORED FAR-RIGHT STATS ALIGNMENT ---
+            li.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; align-items: center;">
+                    <strong style="font-size: 15px;">${agent}</strong>
+                    <span style="color: var(--label); font-weight: bold; font-size: 14px;">${p} / ${g}m (${per}%)</span>
+                </div>
+                <div style="background:#444; height:8px; border-radius:4px; overflow:hidden;">
+                    <div style="background:var(--accent); width:${Math.min(per, 100)}%; height:100%; transition: width 0.4s ease;"></div>
+                </div>
+            `;
             list.appendChild(li);
         });
 
