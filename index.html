@@ -46,7 +46,7 @@
                     <label for="hoursInput" class="input-label">Scheduled Hours</label>
                     <input type="text" inputmode="decimal" id="hoursInput" placeholder="e.g., 35.5" autocomplete="off">
                 </div>
-                <p class="formula-text">Math: (Hours x 60) x 0.81 = Target Minutes</p>
+                <p class="formula-text" style="font-size:13px; color:var(--label); margin-bottom:20px;">Math: (Hours x 60) x 0.81 = Target Minutes</p>
             </div>
 
             <div id="progressInputsWrapper" style="display: none;">
@@ -112,21 +112,22 @@
             <div class="fake-recaptcha">
                 <div class="fake-recaptcha-left">
                     <input type="checkbox" id="robotCheck" autocomplete="off">
-                    <span>I'm not a robot</span>
+                    <span class="rc-text">I'm not a robot</span>
                 </div>
                 <div class="fake-recaptcha-right">
-                    <div class="icon">↻</div>
-                    <div class="text">reCAPTCHA</div>
+                    <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" class="rc-logo" alt="reCAPTCHA">
+                    <div class="rc-brand">reCAPTCHA</div>
+                    <div class="rc-links">Privacy - Terms</div>
                 </div>
             </div>
 
-            <p id="lockWarning" class="lock-warning">Public inputs locked. Use Admin Panel or return to current week.</p>
+            <p id="lockWarning" class="lock-warning" style="display:none; color:#d32f2f; font-size:12px; font-weight:bold; margin-bottom:10px;">Public inputs locked. Use Admin Panel or return to current week.</p>
             <button id="submitBtn" class="primary-btn">Submit Data</button>
-            <p id="resultOutput" class="result-output">Ready to sync...</p>
+            <p id="resultOutput" class="result-output" style="margin-top:15px; font-style:italic; color:var(--label); font-size:14px;">Ready to sync...</p>
         </div>
 
         <div id="cheatsheetContainer" class="cheatsheet-container" style="display: none;">
-            <h3>Service Grid</h3>
+            <h3 style="margin-top:0; color:var(--accent); border-bottom:2px solid var(--accent); padding-bottom:10px; text-align:center;">Service Grid</h3>
             <div class="cheatsheet-grid">
                 <span class="cs-tag">GSDB / GSRD</span> <span class="cs-min">57m</span>
                 <span class="cs-tag">GSOSR</span> <span class="cs-min">49m</span>
@@ -141,24 +142,24 @@
     </div>
 
     <div class="dashboard">
-        <div class="dashboard-header">
-            <h2>Precinct Totals</h2>
+        <div class="dashboard-header" style="text-align:center; border-bottom:2px solid var(--accent); padding-bottom:10px; margin-bottom:15px;">
+            <h2 style="margin:0 0 10px 0;">Precinct Totals</h2>
             <div class="week-controls">
                 <button id="prevWeekBtn" class="nav-btn" title="Previous Week">❮</button>
-                <span class="week-label" id="weekLabel">Loading...</span>
+                <span class="week-label" id="weekLabel" style="font-weight:bold; min-width:160px;">Loading...</span>
                 <button id="calendarBtn" class="nav-btn" title="Select Week">📅</button>
                 <button id="nextWeekBtn" class="nav-btn" title="Next Week">❯</button>
                 <button id="currentWeekBtn" class="nav-btn" title="Jump to Current Week">↺</button>
             </div>
         </div>
         <ul class="agent-list" id="agentList">
-            <li class="agent-item">Connecting to database...</li>
+            <li class="agent-item" style="text-align:center; color:var(--label);">Connecting to database...</li>
         </ul>
     </div>
 
     <div id="adminPanel" class="admin-panel" style="display: none;">
         <span class="close-admin-btn" id="closeAdminBtn">✖</span>
-        <h3>🛡️ Precinct Admin Override</h3>
+        <h3 style="margin-top:0; color:#c62828; margin-bottom:20px;">🛡️ Precinct Admin Override</h3>
         
         <div class="admin-edit-group">
             <select id="adminAgentSelect">
@@ -172,7 +173,7 @@
         <hr class="admin-divider">
         <div class="audit-log-container">
             <table class="audit-table">
-                <thead><tr><th>Agent</th><th>WO #</th><th>Services</th><th>Min</th><th>Time</th></tr></thead>
+                <thead><tr><th>Agent</th><th>WO #</th><th>Services</th><th>Min</th><th>Date & Time</th></tr></thead>
                 <tbody id="auditLogBody"></tbody>
             </table>
         </div>
@@ -181,7 +182,7 @@
 
     <div id="calendarModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="calendar-header">
+            <div class="calendar-header" style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; font-size:16px;">
                 <button id="calPrevMonth" class="nav-btn">❮</button>
                 <span id="calMonthYear"></span>
                 <button id="calNextMonth" class="nav-btn">❯</button>
@@ -189,21 +190,21 @@
             <div class="calendar-grid-header">
                 <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
             </div>
-            <div id="calendarGrid" class="calendar-grid"></div>
+            <div id="calendarGrid"></div>
             <button id="calCancelBtn" class="cancel-btn">Cancel</button>
         </div>
     </div>
 
     <div id="passwordModal" class="modal-overlay">
         <div class="modal-content">
-            <h3>ADMIN LOGIN</h3>
+            <h3 style="margin-top:0;">ADMIN LOGIN</h3>
             <input type="password" id="secretCodeInput" placeholder="Password">
-            <button id="authSubmitBtn" class="primary-btn">Access</button>
+            <button id="authSubmitBtn" class="primary-btn" style="margin-top:15px;">Access</button>
             <button id="authCancelBtn" class="cancel-btn">Cancel</button>
         </div>
     </div>
 
-    <div class="footer-note">v4.30 | joshwuff.com</div>
+    <div class="footer-note" style="text-align:center; margin-bottom:30px;">Loading...</div>
 
     <script src="script.js"></script>
 </body>
