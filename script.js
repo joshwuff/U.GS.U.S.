@@ -218,16 +218,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!error) { updateWeekUI(); document.getElementById('robotCheck').checked = false; }
     };
 
-    // --- 5. ADMIN ---
+    // --- 5. ADMIN LOGIC (5-Click Easter Egg) ---
     let logoClicks = 0;
     let logoTimer;
     document.getElementById('secretLogo').onclick = () => {
         logoClicks++;
         clearTimeout(logoTimer);
-        logoTimer = setTimeout(() => logoClicks = 0, 2000); // Resets if you wait too long between clicks
+        logoTimer = setTimeout(() => logoClicks = 0, 2000); 
         if (logoClicks >= 5) {
             document.getElementById('passwordModal').style.display = 'flex';
-            logoClicks = 0; // Reset for next time
+            logoClicks = 0; 
         }
     };
     
