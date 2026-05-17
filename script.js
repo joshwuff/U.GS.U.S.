@@ -1,4 +1,4 @@
-const APP_VERSION = "4.36";
+const APP_VERSION = "4.37";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
