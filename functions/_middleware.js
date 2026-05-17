@@ -15,7 +15,8 @@ export async function onRequest(context) {
     if (formData.get("password") === PRECINCT_PASSWORD) {
       return new Response(null, {
         status: 302,
-headers: { "Location": "/", "Set-Cookie": COOKIE_NAME + "=true; Path=/; Secure; HttpOnly; SameSite=Strict" }
+headers: { "Location": "/", "Set-Cookie": COOKIE_NAME + "=true; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=43200" }
+
 
       });
     } else {
