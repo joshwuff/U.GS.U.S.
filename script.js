@@ -1,4 +1,4 @@
-const APP_VERSION = "4.34";
+const APP_VERSION = "4.35";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -37,8 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 2. DATE & CALENDAR LOGIC (SUNDAY START) ---
     function getStartOfWeek(d) {
         const date = new Date(d);
-        const day = date.getDay(); // 0 is Sunday, 1 is Monday...
-        const diff = date.getDate() - day; // Shifts to Sunday
+        const day = date.getDay(); 
+        const diff = date.getDate() - day; 
         const start = new Date(date.setDate(diff));
         start.setHours(0,0,0,0);
         return start;
@@ -108,6 +108,25 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('calNextMonth').onclick = () => { currentCalViewDate.setMonth(currentCalViewDate.getMonth() + 1); renderCalendar(); };
     document.getElementById('calCancelBtn').onclick = () => document.getElementById('calendarModal').style.display = 'none';
 
+    // --- 2.5 LIVE UPDATING CLOCK INJECTION ---
+    const dashboardHeader = document.querySelector('.dashboard-header');
+    if (dashboardHeader) {
+        const liveClockDisplay = document.createElement('div');
+        liveClockDisplay.style.cssText = 'font-size: 13px; color: var(--label); margin-top: 12px; font-weight: bold; letter-spacing: 0.5px;';
+        dashboardHeader.appendChild(liveClockDisplay);
+
+        function tickClock() {
+            const now = new Date();
+            const dateString = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            liveClockDisplay.textContent = `${dateString} | ${timeString}`;
+        }
+        
+        // Start ticking
+        setInterval(tickClock, 1000);
+        tickClock(); // Run immediately so there's no 1-second delay
+    }
+
     // --- 3. UI TOGGLE & CALC LOGIC ---
     const actionSelect = document.getElementById('actionSelect');
     actionSelect.onchange = () => {
@@ -137,20 +156,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 4. DATA SYNC & DASHBOARD ---
     async function updateWeekUI() {
-        // 1. Keep the standard string for database querying
         const weekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         
-        // 2. Build the pretty display string with "th", "st", "nd", "rd"
-        const dayName = selectedWeek.toLocaleDateString('en-US', { weekday: 'long' });
-        const monthName = selectedWeek.toLocaleDateString('en-US', { month: 'long' });
-        const d = selectedWeek.getDate();
-        const year = selectedWeek.getFullYear();
-        
-        // Quick math to figure out the right suffix
-        const ordinal = (d > 3 && d < 21) ? 'th' : ['th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th'][d % 10];
-        
-        // 3. Apply the pretty string to the UI
-        document.getElementById('weekLabel').textContent = `${dayName}, ${monthName} ${d}${ordinal}, ${year}`;
+        // REVERTED to the standard "Week of" format
+        document.getElementById('weekLabel').textContent = "Week of " + weekStr;
         
         const isCurrent = weekStr === getStartOfWeek(new Date()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         document.getElementById('submitBtn').disabled = !isCurrent;
