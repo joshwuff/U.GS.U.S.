@@ -8,23 +8,38 @@ export async function onRequest(context) {
   const cookieHeader = request.headers.get("Cookie") || "";
   const isDark = !cookieHeader.includes("theme=light");
 
+  // Allow images and favicons to load without a password
   if (url.pathname.endsWith('.png') || url.pathname.endsWith('.ico')) return await next();
 
+  // --- NEW: LOGOUT LOGIC ---
+  // If they click the logout button, destroy the cookie and refresh the page
+  if (url.pathname === "/logout") {
+    return new Response(null, {
+      status: 302,
+      headers: {
+        "Location": "/",
+        "Set-Cookie": COOKIE_NAME + "=; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=0"
+      }
+    });
+  }
+
+  // Handle Login Attempts
   if (request.method === "POST" && url.pathname === "/login") {
     const formData = await request.formData();
     if (formData.get("password") === PRECINCT_PASSWORD) {
       return new Response(null, {
         status: 302,
-headers: { "Location": "/", "Set-Cookie": COOKIE_NAME + "=true; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=43200" }
-
-
+        headers: { "Location": "/", "Set-Cookie": COOKIE_NAME + "=true; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=43200" }
       });
     } else {
       return new Response(getLoginHTML("Incorrect password.", isDark), { headers: { "Content-Type": "text/html" } });
     }
   }
 
+  // Check if they already have a valid cookie
   if (cookieHeader.includes(COOKIE_NAME + "=true")) return await next();
+  
+  // If no cookie, show the login screen
   return new Response(getLoginHTML("", isDark), { headers: { "Content-Type": "text/html" } });
 }
 
