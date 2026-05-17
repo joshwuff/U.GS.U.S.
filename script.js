@@ -1,4 +1,4 @@
-const APP_VERSION = "4.32";
+const APP_VERSION = "4.33";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -34,22 +34,22 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(theme);
     });
 
-    // --- 2. DATE & CALENDAR LOGIC ---
-    function getMonday(d) {
+    // --- 2. DATE & CALENDAR LOGIC (SUNDAY START) ---
+    function getStartOfWeek(d) {
         const date = new Date(d);
-        const day = date.getDay();
-        const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-        const mon = new Date(date.setDate(diff));
-        mon.setHours(0,0,0,0);
-        return mon;
+        const day = date.getDay(); // 0 is Sunday, 1 is Monday...
+        const diff = date.getDate() - day; // This shifts the date back to Sunday
+        const start = new Date(date.setDate(diff));
+        start.setHours(0,0,0,0);
+        return start;
     }
 
-    let selectedMonday = getMonday(new Date());
-    let currentCalViewDate = new Date(selectedMonday);
+    let selectedWeek = getStartOfWeek(new Date());
+    let currentCalViewDate = new Date(selectedWeek);
 
-    document.getElementById('prevWeekBtn').onclick = () => { selectedMonday.setDate(selectedMonday.getDate() - 7); updateWeekUI(); };
-    document.getElementById('nextWeekBtn').onclick = () => { selectedMonday.setDate(selectedMonday.getDate() + 7); updateWeekUI(); };
-    document.getElementById('currentWeekBtn').onclick = () => { selectedMonday = getMonday(new Date()); updateWeekUI(); };
+    document.getElementById('prevWeekBtn').onclick = () => { selectedWeek.setDate(selectedWeek.getDate() - 7); updateWeekUI(); };
+    document.getElementById('nextWeekBtn').onclick = () => { selectedWeek.setDate(selectedWeek.getDate() + 7); updateWeekUI(); };
+    document.getElementById('currentWeekBtn').onclick = () => { selectedWeek = getStartOfWeek(new Date()); updateWeekUI(); };
 
     function renderCalendar() {
         const grid = document.getElementById('calendarGrid');
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const refDate = new Date(year, month, currentDay - 1); 
                 
                 currentWeekRow.onclick = () => {
-                    selectedMonday = getMonday(refDate);
+                    selectedWeek = getStartOfWeek(refDate);
                     updateWeekUI();
                     document.getElementById('calendarModal').style.display = 'none';
                 };
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    document.getElementById('calendarBtn').onclick = () => { currentCalViewDate = new Date(selectedMonday); renderCalendar(); document.getElementById('calendarModal').style.display = 'flex'; };
+    document.getElementById('calendarBtn').onclick = () => { currentCalViewDate = new Date(selectedWeek); renderCalendar(); document.getElementById('calendarModal').style.display = 'flex'; };
     document.getElementById('calPrevMonth').onclick = () => { currentCalViewDate.setMonth(currentCalViewDate.getMonth() - 1); renderCalendar(); };
     document.getElementById('calNextMonth').onclick = () => { currentCalViewDate.setMonth(currentCalViewDate.getMonth() + 1); renderCalendar(); };
     document.getElementById('calCancelBtn').onclick = () => document.getElementById('calendarModal').style.display = 'none';
@@ -137,16 +137,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 4. DATA SYNC & DASHBOARD ---
     async function updateWeekUI() {
-        const weekStr = selectedMonday.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        document.getElementById('weekLabel').textContent = weekStr;
-        const isCurrent = weekStr === getMonday(new Date()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        const weekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        
+        // Formats the text nicely for the user interface
+        document.getElementById('weekLabel').textContent = "Week of " + weekStr;
+        
+        const isCurrent = weekStr === getStartOfWeek(new Date()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         document.getElementById('submitBtn').disabled = !isCurrent;
         document.getElementById('lockWarning').style.display = isCurrent ? "none" : "block";
+        
         fetchDashboardData(weekStr);
     }
 
-    async function fetchDashboardData(week) {
-        const { data, error } = await _supabase.from('utilization_logs').select('*').eq('week_of', week);
+    async function fetchDashboardData(weekStr) {
+        const { data, error } = await _supabase.from('utilization_logs').select('*').eq('week_of', weekStr);
         if (error) return;
 
         const stats = {};
@@ -214,7 +218,8 @@ document.addEventListener('DOMContentLoaded', () => {
             dbName += `|WO:${document.getElementById('woInput').value}|${tags.join('+')}`;
         }
 
-        const { error } = await _supabase.from('utilization_logs').insert([{ agent_name: dbName, target_minutes: mins, week_of: document.getElementById('weekLabel').textContent }]);
+        const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        const { error } = await _supabase.from('utilization_logs').insert([{ agent_name: dbName, target_minutes: mins, week_of: currentWeekStr }]);
         if (!error) { updateWeekUI(); document.getElementById('robotCheck').checked = false; }
     };
 
@@ -255,8 +260,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if(isNaN(mins)) return alert("Please enter valid minutes.");
 
+        const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         const dbName = `${agent}|${action}|ADMIN_OVERRIDE`;
-        const { error } = await _supabase.from('utilization_logs').insert([{ agent_name: dbName, target_minutes: mins, week_of: document.getElementById('weekLabel').textContent }]);
+        const { error } = await _supabase.from('utilization_logs').insert([{ agent_name: dbName, target_minutes: mins, week_of: currentWeekStr }]);
         
         if(!error) { 
             alert("Force Update Successful!"); 
@@ -266,10 +272,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.getElementById('resetDataBtn').onclick = async () => {
-        const week = document.getElementById('weekLabel').textContent;
-        if(!confirm(`CRITICAL WARNING: Are you sure you want to completely wipe all data for the week of ${week}? This cannot be undone.`)) return;
+        const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        if(!confirm(`CRITICAL WARNING: Are you sure you want to completely wipe all data for the week of ${currentWeekStr}? This cannot be undone.`)) return;
         
-        const { error } = await _supabase.from('utilization_logs').delete().eq('week_of', week);
+        const { error } = await _supabase.from('utilization_logs').delete().eq('week_of', currentWeekStr);
         if(!error) { 
             alert("Week wiped successfully."); 
             updateWeekUI(); 
