@@ -1,4 +1,4 @@
-const APP_VERSION = "4.35";
+const APP_VERSION = "4.36";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -158,7 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function updateWeekUI() {
         const weekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         
-        // REVERTED to the standard "Week of" format
         document.getElementById('weekLabel').textContent = "Week of " + weekStr;
         
         const isCurrent = weekStr === getStartOfWeek(new Date()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
