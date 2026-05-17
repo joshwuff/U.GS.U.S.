@@ -15,7 +15,8 @@ export async function onRequest(context) {
     if (formData.get("password") === PRECINCT_PASSWORD) {
       return new Response(null, {
         status: 302,
-        headers: { "Location": "/", "Set-Cookie": COOKIE_NAME + "=true; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=2592000" }
+headers: { "Location": "/", "Set-Cookie": COOKIE_NAME + "=true; Path=/; Secure; HttpOnly; SameSite=Strict" }
+
       });
     } else {
       return new Response(getLoginHTML("Incorrect password.", isDark), { headers: { "Content-Type": "text/html" } });
