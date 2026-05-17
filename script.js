@@ -1,4 +1,4 @@
-const APP_VERSION = "4.33";
+const APP_VERSION = "4.34";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function getStartOfWeek(d) {
         const date = new Date(d);
         const day = date.getDay(); // 0 is Sunday, 1 is Monday...
-        const diff = date.getDate() - day; // This shifts the date back to Sunday
+        const diff = date.getDate() - day; // Shifts to Sunday
         const start = new Date(date.setDate(diff));
         start.setHours(0,0,0,0);
         return start;
@@ -137,10 +137,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 4. DATA SYNC & DASHBOARD ---
     async function updateWeekUI() {
+        // 1. Keep the standard string for database querying
         const weekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         
-        // Formats the text nicely for the user interface
-        document.getElementById('weekLabel').textContent = "Week of " + weekStr;
+        // 2. Build the pretty display string with "th", "st", "nd", "rd"
+        const dayName = selectedWeek.toLocaleDateString('en-US', { weekday: 'long' });
+        const monthName = selectedWeek.toLocaleDateString('en-US', { month: 'long' });
+        const d = selectedWeek.getDate();
+        const year = selectedWeek.getFullYear();
+        
+        // Quick math to figure out the right suffix
+        const ordinal = (d > 3 && d < 21) ? 'th' : ['th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th'][d % 10];
+        
+        // 3. Apply the pretty string to the UI
+        document.getElementById('weekLabel').textContent = `${dayName}, ${monthName} ${d}${ordinal}, ${year}`;
         
         const isCurrent = weekStr === getStartOfWeek(new Date()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         document.getElementById('submitBtn').disabled = !isCurrent;
