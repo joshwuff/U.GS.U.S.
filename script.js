@@ -1,4 +1,4 @@
-const APP_VERSION = "4.38";
+const APP_VERSION = "4.40";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -223,8 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let timeFormatted = "--";
             if (l.time) {
                 const dateObj = new Date(l.time);
-                // Verify it didn't parse as an invalid or 1969 epoch date
-                if (!isNaN(dateObj) && dateObj.getFullYear() > 2020) {
+                if (!isNaN(dateObj.getTime()) && dateObj.getFullYear() > 2020) {
                     timeFormatted = dateObj.toLocaleDateString('en-US', {month: 'numeric', day: 'numeric'}) + " " + dateObj.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
                 }
             }
@@ -251,11 +250,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        const { error } = await _supabase.from('utilization_logs').insert([{ agent_name: dbName, target_minutes: mins, week_of: currentWeekStr }]);
+        
+        // Removed the JS timestamp. Supabase handles this now!
+        const { error } = await _supabase.from('utilization_logs').insert([{ 
+            agent_name: dbName, 
+            target_minutes: mins, 
+            week_of: currentWeekStr
+        }]);
+        
         if (!error) { 
             updateWeekUI(); 
             document.getElementById('robotCheck').checked = false;
-            // Trigger the success pop-up
             showToast(actionSelect.value === 'GOAL' ? "Target Hours Set!" : "Minutes Logged Successfully!");
         }
     };
@@ -299,7 +304,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         const dbName = `${agent}|${action}|ADMIN_OVERRIDE`;
-        const { error } = await _supabase.from('utilization_logs').insert([{ agent_name: dbName, target_minutes: mins, week_of: currentWeekStr }]);
+        
+        // Removed the JS timestamp. Supabase handles this now!
+        const { error } = await _supabase.from('utilization_logs').insert([{ 
+            agent_name: dbName, 
+            target_minutes: mins, 
+            week_of: currentWeekStr
+        }]);
         
         if(!error) { 
             showToast("Force Update Successful!"); 
