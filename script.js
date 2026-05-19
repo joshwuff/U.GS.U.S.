@@ -1,4 +1,4 @@
-const APP_VERSION = "5.1";
+const APP_VERSION = "5.2";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -151,13 +151,29 @@ document.addEventListener('DOMContentLoaded', () => {
         tickClock(); 
     }
 
-    // --- 3. UI TOGGLE & CALC LOGIC ---
+    // --- 3. UI TOGGLE, DYNAMIC DROPDOWNS & CALC LOGIC ---
     let isCAMode = false;
     const btnARA = document.getElementById('btnARA');
     const btnCA = document.getElementById('btnCA');
     const araWrapper = document.getElementById('araInputsWrapper');
     const caWrapper = document.getElementById('caInputsWrapper');
     const cheatsheet = document.getElementById('cheatsheetContainer');
+    const agentSelect = document.getElementById('agentSelect');
+    
+    // Team Arrays
+    const araTeam = ["Alejandro", "Alvan", "Arturo", "Diana", "G", "James", "Josh", "Justin", "Kurt", "Marrion", "Rob"];
+    const caTeam = ["Adrian", "Aidan", "Alejandro", "Anna", "Arturo", "Cole", "Georgie", "Juwan", "Paolo"];
+
+    function populateDropdown() {
+        agentSelect.innerHTML = '<option value="" disabled selected>-- Choose Agent --</option>';
+        const team = isCAMode ? caTeam : araTeam;
+        team.forEach(agent => {
+            const opt = document.createElement('option');
+            opt.value = agent;
+            opt.textContent = agent;
+            agentSelect.appendChild(opt);
+        });
+    }
 
     btnARA.onclick = () => {
         isCAMode = false;
@@ -166,6 +182,8 @@ document.addEventListener('DOMContentLoaded', () => {
         araWrapper.style.display = 'block';
         caWrapper.style.display = 'none';
         cheatsheet.style.display = actionSelect.value === 'GOAL' ? 'none' : 'block';
+        populateDropdown();
+        updateWeekUI(); // Instantly flips the dashboard view!
     };
 
     btnCA.onclick = () => {
@@ -175,7 +193,12 @@ document.addEventListener('DOMContentLoaded', () => {
         araWrapper.style.display = 'none';
         caWrapper.style.display = 'block';
         cheatsheet.style.display = 'none';
+        populateDropdown();
+        updateWeekUI(); // Instantly flips the dashboard view!
     };
+    
+    // Call on first load
+    populateDropdown();
 
     const actionSelect = document.getElementById('actionSelect');
     actionSelect.onchange = () => {
@@ -253,63 +276,71 @@ document.addEventListener('DOMContentLoaded', () => {
         const list = document.getElementById('agentList');
         list.innerHTML = '';
         
-        const allAgents = [...new Set([...Object.keys(araStats), ...Object.keys(caStats)])].sort();
-
-        allAgents.forEach(agent => {
-            const li = document.createElement('li');
-            li.className = 'agent-item';
-            
-            let innerHTML = `<strong style="font-size: 16px; display:block; margin-bottom:10px; color:var(--accent);">${agent}</strong>`;
-
-            // ARA Dashboard Bars
-            if (araStats[agent]) {
-                const { g, p } = araStats[agent];
-                const per = g > 0 ? Math.round((p/g)*100) : 0;
-                innerHTML += `
-                    <div style="margin-bottom: 12px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px; align-items: center;">
-                            <span style="font-size: 13px; color: var(--label);">ARA Utilization</span>
-                            <span style="font-size: 13px; font-weight: bold;">${p} / ${g}m (${per}%)</span>
+        if (!isCAMode) {
+            // Render ONLY ARA stats
+            const araAgents = Object.keys(araStats).sort();
+            if (araAgents.length === 0) {
+                list.innerHTML = '<li class="agent-item" style="text-align:center; color:var(--label);">No ARA data for this week.</li>';
+            } else {
+                araAgents.forEach(agent => {
+                    const { g, p } = araStats[agent];
+                    const per = g > 0 ? Math.round((p/g)*100) : 0;
+                    const li = document.createElement('li');
+                    li.className = 'agent-item';
+                    li.innerHTML = `
+                        <strong style="font-size: 16px; display:block; margin-bottom:10px; color:var(--accent);">${agent}</strong>
+                        <div style="margin-bottom: 12px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px; align-items: center;">
+                                <span style="font-size: 13px; color: var(--label);">ARA Utilization</span>
+                                <span style="font-size: 13px; font-weight: bold;">${p} / ${g}m (${per}%)</span>
+                            </div>
+                            <div style="background:#444; height:6px; border-radius:3px; overflow:hidden;">
+                                <div style="background:var(--accent); width:${Math.min(per, 100)}%; height:100%; transition: width 0.4s ease;"></div>
+                            </div>
                         </div>
-                        <div style="background:#444; height:6px; border-radius:3px; overflow:hidden;">
-                            <div style="background:var(--accent); width:${Math.min(per, 100)}%; height:100%; transition: width 0.4s ease;"></div>
-                        </div>
-                    </div>
-                `;
+                    `;
+                    list.appendChild(li);
+                });
             }
+        } else {
+            // Render ONLY CA stats
+            const caAgents = Object.keys(caStats).sort();
+            if (caAgents.length === 0) {
+                list.innerHTML = '<li class="agent-item" style="text-align:center; color:var(--label);">No CA data for this week.</li>';
+            } else {
+                caAgents.forEach(agent => {
+                    const { hours, tags, mbbt } = caStats[agent];
+                    const tagsTarget = Math.round(hours * 1.5);
+                    const tagsPer = tagsTarget > 0 ? Math.round((tags / tagsTarget) * 100) : 0;
+                    const mbbtPer = Math.round((mbbt / 1) * 100);
 
-            // CA Dashboard Bars
-            if (caStats[agent]) {
-                const { hours, tags, mbbt } = caStats[agent];
-                const tagsTarget = Math.round(hours * 1.5);
-                const tagsPer = tagsTarget > 0 ? Math.round((tags / tagsTarget) * 100) : 0;
-                const mbbtPer = Math.round((mbbt / 1) * 100);
-
-                innerHTML += `
-                    <div style="margin-bottom: 10px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px; align-items: center;">
-                            <span style="font-size: 13px; color: var(--label);">CA Tags (1.50/hr)</span>
-                            <span style="font-size: 13px; font-weight: bold;">${tags} / ${tagsTarget}</span>
+                    const li = document.createElement('li');
+                    li.className = 'agent-item';
+                    li.innerHTML = `
+                        <strong style="font-size: 16px; display:block; margin-bottom:10px; color:var(--accent);">${agent}</strong>
+                        <div style="margin-bottom: 10px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px; align-items: center;">
+                                <span style="font-size: 13px; color: var(--label);">CA Tags (1.50/hr)</span>
+                                <span style="font-size: 13px; font-weight: bold;">${tags} / ${tagsTarget}</span>
+                            </div>
+                            <div style="background:#444; height:6px; border-radius:3px; overflow:hidden;">
+                                <div style="background:var(--accent); width:${Math.min(tagsPer, 100)}%; height:100%; transition: width 0.4s ease;"></div>
+                            </div>
                         </div>
-                        <div style="background:#444; height:6px; border-radius:3px; overflow:hidden;">
-                            <div style="background:var(--accent); width:${Math.min(tagsPer, 100)}%; height:100%; transition: width 0.4s ease;"></div>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px; align-items: center;">
+                                <span style="font-size: 13px; color: var(--label);">MBBT Memberships</span>
+                                <span style="font-size: 13px; font-weight: bold;">${mbbt} / 1</span>
+                            </div>
+                            <div style="background:#444; height:6px; border-radius:3px; overflow:hidden;">
+                                <div style="background:var(--accent); width:${Math.min(mbbtPer, 100)}%; height:100%; transition: width 0.4s ease;"></div>
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px; align-items: center;">
-                            <span style="font-size: 13px; color: var(--label);">MBBT Memberships</span>
-                            <span style="font-size: 13px; font-weight: bold;">${mbbt} / 1</span>
-                        </div>
-                        <div style="background:#444; height:6px; border-radius:3px; overflow:hidden;">
-                            <div style="background:var(--accent); width:${Math.min(mbbtPer, 100)}%; height:100%; transition: width 0.4s ease;"></div>
-                        </div>
-                    </div>
-                `;
+                    `;
+                    list.appendChild(li);
+                });
             }
-
-            li.innerHTML = innerHTML;
-            list.appendChild(li);
-        });
+        }
 
         const audit = document.getElementById('auditLogBody');
         audit.innerHTML = '';
