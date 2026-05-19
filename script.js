@@ -1,4 +1,4 @@
-const APP_VERSION = "5.4";
+const APP_VERSION = "5.5";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -261,7 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const name = parts[0];
 
             if (log.agent_name.includes('CA_OVERRIDE')) {
-                // If admin overrides, hard reset the values
                 caStats[name] = { hours: parseFloat(parts[2]), tags: parseInt(parts[3]), mbbt: parseInt(parts[4]) };
                 logs.push({ agent: name, wo: 'CA Override', tag: `H:${parts[2]} T:${parts[3]} M:${parts[4]}`, min: '-', time: log.created_at });
             } else if (log.agent_name.includes('CA_LOG')) {
@@ -289,10 +288,11 @@ document.addEventListener('DOMContentLoaded', () => {
         list.innerHTML = '';
         
         if (!isCAMode) {
-            // Render ONLY ARA stats
-            const araAgents = Object.keys(araStats).sort();
+            // NEW: Filter out any ARA agents who have exactly 0 Goal and 0 Progress
+            const araAgents = Object.keys(araStats).filter(a => araStats[a].g > 0 || araStats[a].p > 0).sort();
+            
             if (araAgents.length === 0) {
-                list.innerHTML = '<li class="agent-item" style="text-align:center; color:var(--label);">No ARA data for this week.</li>';
+                list.innerHTML = '<li class="agent-item" style="text-align:center; color:var(--label);">No active ARA data for this week.</li>';
             } else {
                 araAgents.forEach(agent => {
                     const { g, p } = araStats[agent];
@@ -315,22 +315,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         } else {
-            // Render ONLY CA stats
-            const caAgents = Object.keys(caStats).sort();
+            // NEW: Filter out any CA agents who have exactly 0 hours, 0 tags, and 0 mbbt
+            const caAgents = Object.keys(caStats).filter(a => caStats[a].hours > 0 || caStats[a].tags > 0 || caStats[a].mbbt > 0).sort();
+            
             if (caAgents.length === 0) {
-                list.innerHTML = '<li class="agent-item" style="text-align:center; color:var(--label);">No CA data for this week.</li>';
+                list.innerHTML = '<li class="agent-item" style="text-align:center; color:var(--label);">No active CA data for this week.</li>';
             } else {
                 caAgents.forEach(agent => {
                     const { hours, tags, mbbt } = caStats[agent];
                     
-                    // Tag Target: Hours x 1.5
                     const tagsTarget = Math.round(hours * 1.5);
                     const tagsPer = tagsTarget > 0 ? Math.round((tags / tagsTarget) * 100) : 0;
                     
-                    // MBBT Target: Strict floor math. Requires full 8-hour chunks to increase target.
                     let mbbtTarget = Math.floor(hours / 8);
-                    if (hours > 0 && mbbtTarget === 0) mbbtTarget = 1; // Always at least 1 if they worked
-                    
+                    if (hours > 0 && mbbtTarget === 0) mbbtTarget = 1; 
                     const mbbtPer = mbbtTarget > 0 ? Math.round((mbbt / mbbtTarget) * 100) : 0;
 
                     const li = document.createElement('li');
@@ -454,20 +452,47 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('closeAdminBtn').onclick = () => document.getElementById('adminPanel').style.display = 'none';
 
-    // --- NEW: Admin Action Toggle Logic ---
+    // Admin UI Toggles
     const adminActionSelect = document.getElementById('adminActionSelect');
     const adminAraInputs = document.getElementById('adminAraInputs');
     const adminCaInputs = document.getElementById('adminCaInputs');
+    const adminOverrideBtn = document.getElementById('adminOverrideBtn');
 
     adminActionSelect.onchange = (e) => {
-        const isCAOverride = e.target.value === 'CA_OVERRIDE';
-        adminAraInputs.style.display = isCAOverride ? 'none' : 'block';
-        adminCaInputs.style.display = isCAOverride ? 'flex' : 'none';
+        const val = e.target.value;
+        adminAraInputs.style.display = (val === 'GOAL' || val === 'PROGRESS') ? 'block' : 'none';
+        adminCaInputs.style.display = val === 'CA_OVERRIDE' ? 'flex' : 'none';
+        
+        if (val === 'REMOVE_AGENT') {
+            adminOverrideBtn.textContent = 'Remove Agent Data';
+            adminOverrideBtn.style.background = '#d32f2f'; // Red warning color
+        } else {
+            adminOverrideBtn.textContent = 'Force Update';
+            adminOverrideBtn.style.background = 'var(--accent)';
+        }
     };
 
     document.getElementById('adminOverrideBtn').onclick = async () => {
         const agent = document.getElementById('adminAgentSelect').value;
         const action = adminActionSelect.value;
+        const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+        // NEW: Database Delete Logic
+        if (action === 'REMOVE_AGENT') {
+            if(!confirm(`WARNING: Are you sure you want to permanently delete ALL data for ${agent} for the week of ${currentWeekStr}?`)) return;
+            
+            const { error } = await _supabase.from('utilization_logs')
+                .delete()
+                .eq('week_of', currentWeekStr)
+                .like('agent_name', `${agent}|%`); // Deletes any row where the name starts with the agent's name
+                
+            if(!error) { 
+                showToast(`${agent} removed from week!`); 
+                updateWeekUI(); 
+            }
+            return; // Stop the function here so it doesn't try to insert anything
+        }
+
         let dbName = "";
         let mins = 0;
 
@@ -483,8 +508,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if(isNaN(mins)) return alert("Please enter valid minutes.");
             dbName = `${agent}|${action}|ADMIN_OVERRIDE`;
         }
-
-        const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         
         const { error } = await _supabase.from('utilization_logs').insert([{ 
             agent_name: dbName, 
