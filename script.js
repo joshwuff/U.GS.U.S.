@@ -1,4 +1,4 @@
-const APP_VERSION = "5.7";
+const APP_VERSION = "5.8";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -272,8 +272,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const name = parts[0];
 
             if (log.agent_name.includes('CA_OVERRIDE')) {
-                caStats[name] = { hours: parseFloat(parts[2]), tags: parseInt(parts[3]), mbbt: parseInt(parts[4]) };
-                logs.push({ agent: name, wo: 'CA Override', tag: `H:${parts[2]} T:${parts[3]} M:${parts[4]}`, min: '-', time: log.created_at });
+                if(!caStats[name]) caStats[name] = { hours: 0, tags: 0, mbbt: 0 };
+                const h = parts[2], t = parts[3], m = parts[4];
+                if (h !== "") caStats[name].hours = parseFloat(h);
+                if (t !== "") caStats[name].tags = parseInt(t);
+                if (m !== "") caStats[name].mbbt = parseInt(m);
+                logs.push({ agent: name, wo: 'CA Override', tag: `H:${h||'-'} T:${t||'-'} M:${m||'-'}`, min: '-', time: log.created_at });
+                
+            } else if (log.agent_name.includes('ARA_OVERRIDE')) {
+                if(!araStats[name]) araStats[name] = { g: 0, p: 0 };
+                const t = parts[2], p = parts[3];
+                if (t !== "") araStats[name].g = parseFloat(t);
+                if (p !== "") araStats[name].p = parseFloat(p);
+                logs.push({ agent: name, wo: 'ARA Override', tag: `T:${t||'-'} P:${p||'-'}`, min: '-', time: log.created_at });
+
             } else if (log.agent_name.includes('CA_GOAL')) {
                 if(!caStats[name]) caStats[name] = { hours: 0, tags: 0, mbbt: 0 };
                 caStats[name].hours += parseFloat(parts[2]);
@@ -296,6 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     araStats[name].p += log.target_minutes;
                     logs.push({ agent: name, wo: parts[2] || '??', tag: parts[3] || '??', min: log.target_minutes, time: log.created_at });
                 }
+                
+                // Legacy support for older ARA overrides
                 if(log.agent_name.includes('ADMIN_OVERRIDE')) {
                     const action = parts[1];
                     if (action === 'GOAL') araStats[name].g = log.target_minutes;
@@ -485,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     adminActionSelect.onchange = (e) => {
         const val = e.target.value;
-        adminAraInputs.style.display = (val === 'GOAL' || val === 'PROGRESS') ? 'block' : 'none';
+        adminAraInputs.style.display = val === 'ARA_OVERRIDE' ? 'flex' : 'none';
         adminCaInputs.style.display = val === 'CA_OVERRIDE' ? 'flex' : 'none';
         
         if (val === 'REMOVE_AGENT') {
@@ -521,16 +535,34 @@ document.addEventListener('DOMContentLoaded', () => {
         let mins = 0;
 
         if (action === 'CA_OVERRIDE') {
-            const hours = parseFloat(document.getElementById('adminCaHours').value);
-            const tags = parseInt(document.getElementById('adminCaTags').value);
-            const mbbt = parseInt(document.getElementById('adminCaMbbt').value);
+            const hoursStr = document.getElementById('adminCaHours').value.trim();
+            const tagsStr = document.getElementById('adminCaTags').value.trim();
+            const mbbtStr = document.getElementById('adminCaMbbt').value.trim();
             
-            if(isNaN(hours) || isNaN(tags) || isNaN(mbbt)) return alert("Please fill all CA fields with valid numbers.");
+            if(hoursStr === "" && tagsStr === "" && mbbtStr === "") return alert("Please enter at least one value to update.");
+            
+            const hours = hoursStr !== "" ? parseFloat(hoursStr) : "";
+            const tags = tagsStr !== "" ? parseInt(tagsStr) : "";
+            const mbbt = mbbtStr !== "" ? parseInt(mbbtStr) : "";
+            
+            if((hoursStr !== "" && isNaN(hours)) || (tagsStr !== "" && isNaN(tags)) || (mbbtStr !== "" && isNaN(mbbt))) {
+                return alert("Please ensure the fields you entered contain valid numbers.");
+            }
             dbName = `${agent}|CA_OVERRIDE|${hours}|${tags}|${mbbt}`;
-        } else {
-            mins = parseInt(document.getElementById('adminValueInput').value);
-            if(isNaN(mins)) return alert("Please enter valid minutes.");
-            dbName = `${agent}|${action}|ADMIN_OVERRIDE`;
+            
+        } else if (action === 'ARA_OVERRIDE') {
+            const targetStr = document.getElementById('adminAraTarget').value.trim();
+            const progressStr = document.getElementById('adminAraProgress').value.trim();
+            
+            if(targetStr === "" && progressStr === "") return alert("Please enter at least one value to update.");
+            
+            const target = targetStr !== "" ? parseInt(targetStr) : "";
+            const progress = progressStr !== "" ? parseInt(progressStr) : "";
+            
+            if((targetStr !== "" && isNaN(target)) || (progressStr !== "" && isNaN(progress))) {
+                return alert("Please ensure the fields you entered contain valid numbers.");
+            }
+            dbName = `${agent}|ARA_OVERRIDE|${target}|${progress}`;
         }
         
         const { error } = await _supabase.from('utilization_logs').insert([{ 
@@ -541,7 +573,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if(!error) { 
             showToast("Force Update Successful!"); 
-            document.getElementById('adminValueInput').value = '';
+            document.getElementById('adminAraTarget').value = '';
+            document.getElementById('adminAraProgress').value = '';
             document.getElementById('adminCaHours').value = '';
             document.getElementById('adminCaTags').value = '';
             document.getElementById('adminCaMbbt').value = '';
