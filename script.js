@@ -1,4 +1,4 @@
-const APP_VERSION = "5.2";
+const APP_VERSION = "5.3";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -7,11 +7,19 @@ const _supabase = supabase.createClient(
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- 0. RESTORE MOTIVATIONAL FOOTER ---
-    const footerNote = document.querySelector('.footer-note');
-    if (footerNote) {
-        footerNote.innerHTML = `Target: 81% (0.81) | You can do it!!! | v${APP_VERSION}`;
+    // --- 0. DYNAMIC MOTIVATIONAL FOOTER ---
+    function updateFooter(isCA) {
+        const footerNote = document.querySelector('.footer-note');
+        if (footerNote) {
+            if (isCA) {
+                footerNote.innerHTML = `Target: 1.5 Tags/hr & 1 MBBT/day | You can do it!!! | v${APP_VERSION}`;
+            } else {
+                footerNote.innerHTML = `Target: 81% (0.81) | You can do it!!! | v${APP_VERSION}`;
+            }
+        }
     }
+    // Initialize default ARA footer
+    updateFooter(false);
 
     // --- 1. THEME ENGINE ---
     const toggleBtn = document.createElement('button');
@@ -183,7 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
         caWrapper.style.display = 'none';
         cheatsheet.style.display = actionSelect.value === 'GOAL' ? 'none' : 'block';
         populateDropdown();
-        updateWeekUI(); // Instantly flips the dashboard view!
+        updateFooter(false);
+        updateWeekUI(); 
     };
 
     btnCA.onclick = () => {
@@ -194,7 +203,8 @@ document.addEventListener('DOMContentLoaded', () => {
         caWrapper.style.display = 'block';
         cheatsheet.style.display = 'none';
         populateDropdown();
-        updateWeekUI(); // Instantly flips the dashboard view!
+        updateFooter(true);
+        updateWeekUI(); 
     };
     
     // Call on first load
@@ -310,9 +320,15 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 caAgents.forEach(agent => {
                     const { hours, tags, mbbt } = caStats[agent];
+                    
+                    // Tag Target: Hours x 1.5
                     const tagsTarget = Math.round(hours * 1.5);
                     const tagsPer = tagsTarget > 0 ? Math.round((tags / tagsTarget) * 100) : 0;
-                    const mbbtPer = Math.round((mbbt / 1) * 100);
+                    
+                    // MBBT Target: 1 per 8 hour shift. Ensure it's at least 1 if they worked.
+                    let mbbtTarget = Math.round(hours / 8);
+                    if (hours > 0 && mbbtTarget === 0) mbbtTarget = 1;
+                    const mbbtPer = mbbtTarget > 0 ? Math.round((mbbt / mbbtTarget) * 100) : 0;
 
                     const li = document.createElement('li');
                     li.className = 'agent-item';
@@ -330,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div>
                             <div style="display:flex; justify-content:space-between; margin-bottom:4px; align-items: center;">
                                 <span style="font-size: 13px; color: var(--label);">MBBT Memberships</span>
-                                <span style="font-size: 13px; font-weight: bold;">${mbbt} / 1</span>
+                                <span style="font-size: 13px; font-weight: bold;">${mbbt} / ${mbbtTarget}</span>
                             </div>
                             <div style="background:#444; height:6px; border-radius:3px; overflow:hidden;">
                                 <div style="background:var(--accent); width:${Math.min(mbbtPer, 100)}%; height:100%; transition: width 0.4s ease;"></div>
