@@ -1,4 +1,4 @@
-const APP_VERSION = "5.8";
+const APP_VERSION = "5.9";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -166,11 +166,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const caWrapper = document.getElementById('caInputsWrapper');
     const cheatsheet = document.getElementById('cheatsheetContainer');
     const agentSelect = document.getElementById('agentSelect');
+    const adminAgentSelect = document.getElementById('adminAgentSelect');
     
     // Team Arrays
     const araTeam = ["Alejandro", "Alvan", "Arturo", "Diana", "G", "James", "Josh", "Justin", "Kurt", "Marrion", "Rob"];
     const caTeam = ["Adrian", "Aidan", "Alejandro", "Anna", "Arturo", "Cole", "Georgie", "Juwan", "Paolo"];
 
+    // Main App Dropdown
     function populateDropdown() {
         agentSelect.innerHTML = '<option value="" disabled selected>-- Choose Agent --</option>';
         const team = isCAMode ? caTeam : araTeam;
@@ -179,6 +181,28 @@ document.addEventListener('DOMContentLoaded', () => {
             opt.value = agent;
             opt.textContent = agent;
             agentSelect.appendChild(opt);
+        });
+    }
+
+    // Admin Panel Dropdown
+    function populateAdminDropdown(action) {
+        adminAgentSelect.innerHTML = '<option value="" disabled selected>-- Choose Agent --</option>';
+        let team = [];
+        
+        if (action === 'ARA_OVERRIDE') {
+            team = araTeam;
+        } else if (action === 'CA_OVERRIDE') {
+            team = caTeam;
+        } else if (action === 'REMOVE_AGENT') {
+            // Combines and alphabetizes both lists so you can quickly scrub anyone
+            team = [...new Set([...araTeam, ...caTeam])].sort();
+        }
+
+        team.forEach(agent => {
+            const opt = document.createElement('option');
+            opt.value = agent;
+            opt.textContent = agent;
+            adminAgentSelect.appendChild(opt);
         });
     }
 
@@ -208,6 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Call on first load
     populateDropdown();
+    populateAdminDropdown('ARA_OVERRIDE'); // Sets default admin view
 
     // ARA UI Logic
     const actionSelect = document.getElementById('actionSelect');
@@ -509,10 +534,15 @@ document.addEventListener('DOMContentLoaded', () => {
             adminOverrideBtn.textContent = 'Force Update';
             adminOverrideBtn.style.background = 'var(--accent)';
         }
+
+        // --- NEW: dynamically populate the dropdown based on action ---
+        populateAdminDropdown(val);
     };
 
     document.getElementById('adminOverrideBtn').onclick = async () => {
         const agent = document.getElementById('adminAgentSelect').value;
+        if (!agent) return alert("Please select an agent first.");
+
         const action = adminActionSelect.value;
         const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
