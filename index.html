@@ -223,15 +223,15 @@
             </select>
             
             <select id="adminActionSelect">
-                <option value="GOAL">ARA Target (Mins)</option>
-                <option value="PROGRESS">ARA Progress (Mins)</option>
+                <option value="ARA_OVERRIDE">ARA Target/Progress (Override)</option>
                 <option value="CA_OVERRIDE">CA Target/Progress (Override)</option>
                 <option value="REMOVE_AGENT">Remove Agent from Week</option>
             </select>
         </div>
 
-        <div id="adminAraInputs" class="admin-edit-group" style="width: 100%;">
-            <input type="text" id="adminValueInput" placeholder="Mins" style="width: 100%;">
+        <div id="adminAraInputs" class="admin-edit-group" style="width: 100%; gap: 5px;">
+            <input type="text" id="adminAraTarget" placeholder="Target Mins" style="width: 50%;">
+            <input type="text" id="adminAraProgress" placeholder="Progress Mins" style="width: 50%;">
         </div>
 
         <div id="adminCaInputs" class="admin-edit-group" style="display: none; width: 100%; gap: 5px;">
