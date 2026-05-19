@@ -207,10 +207,25 @@
                     <option value="Paolo">Paolo</option>
                 </optgroup>
             </select>
-            <select id="adminActionSelect"><option value="GOAL">Target</option><option value="PROGRESS">Progress</option></select>
-            <input type="text" id="adminValueInput" placeholder="Mins">
+            
+            <select id="adminActionSelect">
+                <option value="GOAL">ARA Target (Mins)</option>
+                <option value="PROGRESS">ARA Progress (Mins)</option>
+                <option value="CA_OVERRIDE">CA Target/Progress (Override)</option>
+            </select>
         </div>
-        <button id="adminOverrideBtn" class="admin-action-btn">Force Update</button>
+
+        <div id="adminAraInputs" class="admin-edit-group" style="width: 100%;">
+            <input type="text" id="adminValueInput" placeholder="Mins" style="width: 100%;">
+        </div>
+
+        <div id="adminCaInputs" class="admin-edit-group" style="display: none; width: 100%; gap: 5px;">
+            <input type="text" id="adminCaHours" placeholder="Hours" style="width: 33%;">
+            <input type="text" id="adminCaTags" placeholder="Tags" style="width: 33%;">
+            <input type="text" id="adminCaMbbt" placeholder="MBBT" style="width: 33%;">
+        </div>
+
+        <button id="adminOverrideBtn" class="admin-action-btn" style="width: 100%; margin-top: 10px;">Force Update</button>
 
         <hr class="admin-divider">
         <div class="audit-log-container">
