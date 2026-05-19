@@ -1,4 +1,4 @@
-const APP_VERSION = "5.3";
+const APP_VERSION = "5.4";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-    // Initialize default ARA footer
     updateFooter(false);
 
     // --- 1. THEME ENGINE ---
@@ -261,12 +260,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const parts = log.agent_name.split('|');
             const name = parts[0];
 
-            if (log.agent_name.includes('CA_LOG')) {
+            if (log.agent_name.includes('CA_OVERRIDE')) {
+                // If admin overrides, hard reset the values
+                caStats[name] = { hours: parseFloat(parts[2]), tags: parseInt(parts[3]), mbbt: parseInt(parts[4]) };
+                logs.push({ agent: name, wo: 'CA Override', tag: `H:${parts[2]} T:${parts[3]} M:${parts[4]}`, min: '-', time: log.created_at });
+            } else if (log.agent_name.includes('CA_LOG')) {
                 if(!caStats[name]) caStats[name] = { hours: 0, tags: 0, mbbt: 0 };
                 caStats[name].hours += parseFloat(parts[2]);
                 caStats[name].tags += parseInt(parts[3]);
                 caStats[name].mbbt += parseInt(parts[4]);
-                
                 logs.push({ agent: name, wo: 'CA Data', tag: `H:${parts[2]} T:${parts[3]} M:${parts[4]}`, min: '-', time: log.created_at });
             } else {
                 if(!araStats[name]) araStats[name] = { g: 0, p: 0 };
@@ -325,9 +327,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const tagsTarget = Math.round(hours * 1.5);
                     const tagsPer = tagsTarget > 0 ? Math.round((tags / tagsTarget) * 100) : 0;
                     
-                    // MBBT Target: 1 per 8 hour shift. Ensure it's at least 1 if they worked.
-                    let mbbtTarget = Math.round(hours / 8);
-                    if (hours > 0 && mbbtTarget === 0) mbbtTarget = 1;
+                    // MBBT Target: Strict floor math. Requires full 8-hour chunks to increase target.
+                    let mbbtTarget = Math.floor(hours / 8);
+                    if (hours > 0 && mbbtTarget === 0) mbbtTarget = 1; // Always at least 1 if they worked
+                    
                     const mbbtPer = mbbtTarget > 0 ? Math.round((mbbt / mbbtTarget) * 100) : 0;
 
                     const li = document.createElement('li');
@@ -451,15 +454,37 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('closeAdminBtn').onclick = () => document.getElementById('adminPanel').style.display = 'none';
 
+    // --- NEW: Admin Action Toggle Logic ---
+    const adminActionSelect = document.getElementById('adminActionSelect');
+    const adminAraInputs = document.getElementById('adminAraInputs');
+    const adminCaInputs = document.getElementById('adminCaInputs');
+
+    adminActionSelect.onchange = (e) => {
+        const isCAOverride = e.target.value === 'CA_OVERRIDE';
+        adminAraInputs.style.display = isCAOverride ? 'none' : 'block';
+        adminCaInputs.style.display = isCAOverride ? 'flex' : 'none';
+    };
+
     document.getElementById('adminOverrideBtn').onclick = async () => {
         const agent = document.getElementById('adminAgentSelect').value;
-        const action = document.getElementById('adminActionSelect').value;
-        const mins = parseInt(document.getElementById('adminValueInput').value);
-        
-        if(isNaN(mins)) return alert("Please enter valid minutes.");
+        const action = adminActionSelect.value;
+        let dbName = "";
+        let mins = 0;
+
+        if (action === 'CA_OVERRIDE') {
+            const hours = parseFloat(document.getElementById('adminCaHours').value);
+            const tags = parseInt(document.getElementById('adminCaTags').value);
+            const mbbt = parseInt(document.getElementById('adminCaMbbt').value);
+            
+            if(isNaN(hours) || isNaN(tags) || isNaN(mbbt)) return alert("Please fill all CA fields with valid numbers.");
+            dbName = `${agent}|CA_OVERRIDE|${hours}|${tags}|${mbbt}`;
+        } else {
+            mins = parseInt(document.getElementById('adminValueInput').value);
+            if(isNaN(mins)) return alert("Please enter valid minutes.");
+            dbName = `${agent}|${action}|ADMIN_OVERRIDE`;
+        }
 
         const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        const dbName = `${agent}|${action}|ADMIN_OVERRIDE`;
         
         const { error } = await _supabase.from('utilization_logs').insert([{ 
             agent_name: dbName, 
@@ -470,6 +495,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!error) { 
             showToast("Force Update Successful!"); 
             document.getElementById('adminValueInput').value = '';
+            document.getElementById('adminCaHours').value = '';
+            document.getElementById('adminCaTags').value = '';
+            document.getElementById('adminCaMbbt').value = '';
             updateWeekUI(); 
         }
     };
