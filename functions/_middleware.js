@@ -11,8 +11,7 @@ export async function onRequest(context) {
   // Allow images and favicons to load without a password
   if (url.pathname.endsWith('.png') || url.pathname.endsWith('.ico')) return await next();
 
-  // --- NEW: LOGOUT LOGIC ---
-  // If they click the logout button, destroy the cookie and refresh the page
+  // --- LOGOUT LOGIC ---
   if (url.pathname === "/logout") {
     return new Response(null, {
       status: 302,
@@ -60,7 +59,7 @@ function getLoginHTML(errorMessage, isDark) {
     '<button class="toggle" onclick="t()">' + (isDark ? '☀️' : '🌙') + '</button>' +
     '<img src="/U.GS.U.S-logo.png" class="logo"><h2>U.GS.U.S. Portal</h2>' +
     '<form method="POST" action="/login" style="display:flex; flex-direction:column; align-items:center;">' +
-    '<input type="password" name="password" class="input" placeholder="Password" required autofocus>' +
+    '<input type="password" name="password" class="input" placeholder="Password" required autofocus onkeypress="if(event.key === \'Enter\') this.form.submit();">' +
     '<button type="submit" class="btn">Access System</button></form>' +
     errorHTML +
     '<script>function t(){ const c = document.cookie.includes("theme=light") ? "dark" : "light"; document.cookie = "theme=" + c + "; path=/; max-age=31536000"; location.reload(); }</script></body></html>';
