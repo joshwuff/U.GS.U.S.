@@ -1,4 +1,4 @@
-const APP_VERSION = "4.40";
+const APP_VERSION = "4.43";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -40,6 +40,24 @@ document.addEventListener('DOMContentLoaded', () => {
         toast.textContent = message;
         toast.classList.add('show');
         setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    }
+
+    // --- GLOBAL QOL CONTROLS ---
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'F12') {
+            e.preventDefault(); 
+            window.location.href = '/logout'; 
+        }
+    });
+
+    const secretCodeInput = document.getElementById('secretCodeInput');
+    if (secretCodeInput) {
+        secretCodeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('authSubmitBtn').click();
+            }
+        });
     }
 
     // --- 2. DATE & CALENDAR LOGIC (SUNDAY START) ---
@@ -129,19 +147,42 @@ document.addEventListener('DOMContentLoaded', () => {
             const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             liveClockDisplay.textContent = `${dateString} | ${timeString}`;
         }
-        
-        // Start ticking
         setInterval(tickClock, 1000);
-        tickClock(); // Run immediately so there's no 1-second delay
+        tickClock(); 
     }
 
     // --- 3. UI TOGGLE & CALC LOGIC ---
+    let isCAMode = false;
+    const btnARA = document.getElementById('btnARA');
+    const btnCA = document.getElementById('btnCA');
+    const araWrapper = document.getElementById('araInputsWrapper');
+    const caWrapper = document.getElementById('caInputsWrapper');
+    const cheatsheet = document.getElementById('cheatsheetContainer');
+
+    btnARA.onclick = () => {
+        isCAMode = false;
+        btnARA.classList.add('active');
+        btnCA.classList.remove('active');
+        araWrapper.style.display = 'block';
+        caWrapper.style.display = 'none';
+        cheatsheet.style.display = actionSelect.value === 'GOAL' ? 'none' : 'block';
+    };
+
+    btnCA.onclick = () => {
+        isCAMode = true;
+        btnCA.classList.add('active');
+        btnARA.classList.remove('active');
+        araWrapper.style.display = 'none';
+        caWrapper.style.display = 'block';
+        cheatsheet.style.display = 'none';
+    };
+
     const actionSelect = document.getElementById('actionSelect');
     actionSelect.onchange = () => {
         const isGoal = actionSelect.value === 'GOAL';
         document.getElementById('goalInputsWrapper').style.display = isGoal ? 'block' : 'none';
         document.getElementById('progressInputsWrapper').style.display = isGoal ? 'none' : 'block';
-        document.getElementById('cheatsheetContainer').style.display = isGoal ? 'none' : 'block';
+        if(!isCAMode) cheatsheet.style.display = isGoal ? 'none' : 'block';
     };
 
     const serviceSelects = document.querySelectorAll('.service-select');
@@ -179,41 +220,94 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data, error } = await _supabase.from('utilization_logs').select('*').eq('week_of', weekStr);
         if (error) return;
 
-        const stats = {};
+        const araStats = {};
+        const caStats = {};
         const logs = [];
+
         data.forEach(log => {
             const parts = log.agent_name.split('|');
             const name = parts[0];
-            if(!stats[name]) stats[name] = { g: 0, p: 0 };
-            if(log.agent_name.includes('GOAL')) stats[name].g += log.target_minutes;
-            if(log.agent_name.includes('PROGRESS')) {
-                stats[name].p += log.target_minutes;
-                logs.push({ agent: name, wo: parts[2] || '??', tag: parts[3] || '??', min: log.target_minutes, time: log.created_at });
-            }
-            if(log.agent_name.includes('ADMIN_OVERRIDE')) {
-                const action = parts[1];
-                if (action === 'GOAL') stats[name].g = log.target_minutes;
-                if (action === 'PROGRESS') stats[name].p = log.target_minutes;
+
+            if (log.agent_name.includes('CA_LOG')) {
+                if(!caStats[name]) caStats[name] = { hours: 0, tags: 0, mbbt: 0 };
+                caStats[name].hours += parseFloat(parts[2]);
+                caStats[name].tags += parseInt(parts[3]);
+                caStats[name].mbbt += parseInt(parts[4]);
+                
+                logs.push({ agent: name, wo: 'CA Data', tag: `H:${parts[2]} T:${parts[3]} M:${parts[4]}`, min: '-', time: log.created_at });
+            } else {
+                if(!araStats[name]) araStats[name] = { g: 0, p: 0 };
+                if(log.agent_name.includes('GOAL')) araStats[name].g += log.target_minutes;
+                if(log.agent_name.includes('PROGRESS')) {
+                    araStats[name].p += log.target_minutes;
+                    logs.push({ agent: name, wo: parts[2] || '??', tag: parts[3] || '??', min: log.target_minutes, time: log.created_at });
+                }
+                if(log.agent_name.includes('ADMIN_OVERRIDE')) {
+                    const action = parts[1];
+                    if (action === 'GOAL') araStats[name].g = log.target_minutes;
+                    if (action === 'PROGRESS') araStats[name].p = log.target_minutes;
+                }
             }
         });
 
         const list = document.getElementById('agentList');
         list.innerHTML = '';
-        Object.keys(stats).sort().forEach(agent => {
-            const { g, p } = stats[agent];
-            const per = g > 0 ? Math.round((p/g)*100) : 0;
+        
+        const allAgents = [...new Set([...Object.keys(araStats), ...Object.keys(caStats)])].sort();
+
+        allAgents.forEach(agent => {
             const li = document.createElement('li');
             li.className = 'agent-item';
             
-            li.innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:6px; align-items: center;">
-                    <strong style="font-size: 15px;">${agent}</strong>
-                    <span style="color: var(--label); font-weight: bold; font-size: 14px;">${p} / ${g}m (${per}%)</span>
-                </div>
-                <div style="background:#444; height:8px; border-radius:4px; overflow:hidden;">
-                    <div style="background:var(--accent); width:${Math.min(per, 100)}%; height:100%; transition: width 0.4s ease;"></div>
-                </div>
-            `;
+            let innerHTML = `<strong style="font-size: 16px; display:block; margin-bottom:10px; color:var(--accent);">${agent}</strong>`;
+
+            // ARA Dashboard Bars
+            if (araStats[agent]) {
+                const { g, p } = araStats[agent];
+                const per = g > 0 ? Math.round((p/g)*100) : 0;
+                innerHTML += `
+                    <div style="margin-bottom: 12px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px; align-items: center;">
+                            <span style="font-size: 13px; color: var(--label);">ARA Utilization</span>
+                            <span style="font-size: 13px; font-weight: bold;">${p} / ${g}m (${per}%)</span>
+                        </div>
+                        <div style="background:#444; height:6px; border-radius:3px; overflow:hidden;">
+                            <div style="background:var(--accent); width:${Math.min(per, 100)}%; height:100%; transition: width 0.4s ease;"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // CA Dashboard Bars
+            if (caStats[agent]) {
+                const { hours, tags, mbbt } = caStats[agent];
+                const tagsTarget = Math.round(hours * 1.5);
+                const tagsPer = tagsTarget > 0 ? Math.round((tags / tagsTarget) * 100) : 0;
+                const mbbtPer = Math.round((mbbt / 1) * 100);
+
+                innerHTML += `
+                    <div style="margin-bottom: 10px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px; align-items: center;">
+                            <span style="font-size: 13px; color: var(--label);">CA Tags (1.50/hr)</span>
+                            <span style="font-size: 13px; font-weight: bold;">${tags} / ${tagsTarget}</span>
+                        </div>
+                        <div style="background:#444; height:6px; border-radius:3px; overflow:hidden;">
+                            <div style="background:var(--accent); width:${Math.min(tagsPer, 100)}%; height:100%; transition: width 0.4s ease;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px; align-items: center;">
+                            <span style="font-size: 13px; color: var(--label);">MBBT Memberships</span>
+                            <span style="font-size: 13px; font-weight: bold;">${mbbt} / 1</span>
+                        </div>
+                        <div style="background:#444; height:6px; border-radius:3px; overflow:hidden;">
+                            <div style="background:var(--accent); width:${Math.min(mbbtPer, 100)}%; height:100%; transition: width 0.4s ease;"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            li.innerHTML = innerHTML;
             list.appendChild(li);
         });
 
@@ -234,24 +328,34 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('submitBtn').onclick = async () => {
         if (!document.getElementById('agentSelect').value || !document.getElementById('robotCheck').checked) return alert("Missing info!");
         
+        let dbName = "";
         let mins = 0;
-        let dbName = `${document.getElementById('agentSelect').value}|${actionSelect.value}`;
 
-        if (actionSelect.value === 'GOAL') {
-            mins = Math.round((parseFloat(document.getElementById('hoursInput').value) * 60) * 0.81);
+        if (isCAMode) {
+            const hours = parseFloat(document.getElementById('caHoursInput').value);
+            const tags = parseInt(document.getElementById('caTagsInput').value);
+            const mbbt = parseInt(document.getElementById('caMbbtInput').value);
+
+            if(isNaN(hours) || isNaN(tags) || isNaN(mbbt)) return alert("Please fill all CA fields with numbers!");
+            
+            dbName = `${document.getElementById('agentSelect').value}|CA_LOG|${hours}|${tags}|${mbbt}`;
         } else {
-            const tags = [];
-            serviceSelects.forEach(s => { 
-                mins += parseInt(s.value); 
-                const tag = s.options[s.selectedIndex].dataset.tag;
-                if(tag !== "NONE") tags.push(tag);
-            });
-            dbName += `|WO:${document.getElementById('woInput').value}|${tags.join('+')}`;
+            dbName = `${document.getElementById('agentSelect').value}|${actionSelect.value}`;
+            if (actionSelect.value === 'GOAL') {
+                mins = Math.round((parseFloat(document.getElementById('hoursInput').value) * 60) * 0.81);
+            } else {
+                const tags = [];
+                serviceSelects.forEach(s => { 
+                    mins += parseInt(s.value); 
+                    const tag = s.options[s.selectedIndex].dataset.tag;
+                    if(tag !== "NONE") tags.push(tag);
+                });
+                dbName += `|WO:${document.getElementById('woInput').value}|${tags.join('+')}`;
+            }
         }
 
         const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         
-        // Removed the JS timestamp. Supabase handles this now!
         const { error } = await _supabase.from('utilization_logs').insert([{ 
             agent_name: dbName, 
             target_minutes: mins, 
@@ -261,7 +365,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!error) { 
             updateWeekUI(); 
             document.getElementById('robotCheck').checked = false;
-            showToast(actionSelect.value === 'GOAL' ? "Target Hours Set!" : "Minutes Logged Successfully!");
+            
+            if (isCAMode) {
+                showToast("CA Stats Logged Successfully!");
+            } else {
+                showToast(actionSelect.value === 'GOAL' ? "Target Hours Set!" : "Minutes Logged Successfully!");
+            }
         }
     };
 
@@ -305,7 +414,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         const dbName = `${agent}|${action}|ADMIN_OVERRIDE`;
         
-        // Removed the JS timestamp. Supabase handles this now!
         const { error } = await _supabase.from('utilization_logs').insert([{ 
             agent_name: dbName, 
             target_minutes: mins, 
