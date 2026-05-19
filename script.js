@@ -1,4 +1,4 @@
-const APP_VERSION = "5.6";
+const APP_VERSION = "5.7";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -275,18 +275,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 caStats[name] = { hours: parseFloat(parts[2]), tags: parseInt(parts[3]), mbbt: parseInt(parts[4]) };
                 logs.push({ agent: name, wo: 'CA Override', tag: `H:${parts[2]} T:${parts[3]} M:${parts[4]}`, min: '-', time: log.created_at });
             } else if (log.agent_name.includes('CA_GOAL')) {
-                // NEW: CA Hours split
                 if(!caStats[name]) caStats[name] = { hours: 0, tags: 0, mbbt: 0 };
                 caStats[name].hours += parseFloat(parts[2]);
                 logs.push({ agent: name, wo: 'CA Goal', tag: `Hours: ${parts[2]}`, min: '-', time: log.created_at });
             } else if (log.agent_name.includes('CA_PROGRESS')) {
-                // NEW: CA Progress split
                 if(!caStats[name]) caStats[name] = { hours: 0, tags: 0, mbbt: 0 };
                 caStats[name].tags += parseInt(parts[2]);
                 caStats[name].mbbt += parseInt(parts[3]);
                 logs.push({ agent: name, wo: 'CA Progress', tag: `Tags: ${parts[2]} | MBBT: ${parts[3]}`, min: '-', time: log.created_at });
             } else if (log.agent_name.includes('CA_LOG')) {
-                // LEGACY SUPPORT: For entries from older versions
                 if(!caStats[name]) caStats[name] = { hours: 0, tags: 0, mbbt: 0 };
                 caStats[name].hours += parseFloat(parts[2]);
                 caStats[name].tags += parseInt(parts[3]);
@@ -400,7 +397,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let dbName = "";
         let mins = 0;
 
-        // NEW: Split Submission Logic for CAs
         if (isCAMode) {
             if (caActionSelect.value === 'CA_GOAL') {
                 const hours = parseFloat(document.getElementById('caHoursInput').value);
@@ -439,7 +435,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateWeekUI(); 
             document.getElementById('robotCheck').checked = false;
             
-            // Clear progress inputs after submission
             if (isCAMode && caActionSelect.value === 'CA_PROGRESS') {
                 document.getElementById('caTagsInput').value = '';
                 document.getElementById('caMbbtInput').value = '';
