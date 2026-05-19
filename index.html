@@ -112,18 +112,32 @@
             </div>
 
             <div id="caInputsWrapper" style="display: none;">
-                <div class="wo-calc-container">
-                    <div class="input-group" style="width: 100%;">
+                
+                <div class="input-group">
+                    <label for="caActionSelect" class="input-label">What are you doing?</label>
+                    <select id="caActionSelect" autocomplete="off">
+                        <option value="CA_GOAL">1. Set Scheduled Weekly Hours</option>
+                        <option value="CA_PROGRESS">2. Log Tags & Memberships</option>
+                    </select>
+                </div>
+
+                <div id="caGoalInputsWrapper">
+                    <div class="input-group">
                         <label for="caHoursInput" class="input-label">Scheduled Weekly Hours</label>
                         <input type="text" inputmode="decimal" id="caHoursInput" placeholder="e.g., 32" autocomplete="off">
                     </div>
-                    <div class="input-group" style="width: 100%;">
-                        <label for="caTagsInput" class="input-label">Total Tags Created</label>
-                        <input type="text" inputmode="numeric" id="caTagsInput" placeholder="e.g., 45" autocomplete="off">
-                    </div>
-                    <div class="input-group" style="width: 100%; margin-bottom: 5px;">
-                        <label for="caMbbtInput" class="input-label">MBBT Memberships</label>
-                        <input type="text" inputmode="numeric" id="caMbbtInput" placeholder="e.g., 4" autocomplete="off">
+                </div>
+
+                <div id="caProgressInputsWrapper" style="display: none;">
+                    <div class="wo-calc-container">
+                        <div class="input-group" style="width: 100%;">
+                            <label for="caTagsInput" class="input-label">Tags Created</label>
+                            <input type="text" inputmode="numeric" id="caTagsInput" placeholder="e.g., 5" autocomplete="off">
+                        </div>
+                        <div class="input-group" style="width: 100%; margin-bottom: 5px;">
+                            <label for="caMbbtInput" class="input-label">MBBT Memberships</label>
+                            <input type="text" inputmode="numeric" id="caMbbtInput" placeholder="e.g., 1" autocomplete="off">
+                        </div>
                     </div>
                 </div>
             </div>
