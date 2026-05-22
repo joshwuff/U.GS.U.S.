@@ -1,4 +1,4 @@
-const APP_VERSION = "5.10";
+const APP_VERSION = "5.11";
 
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
@@ -7,6 +7,9 @@ const _supabase = supabase.createClient(
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    // Global variable to hold current stats for override checks
+    let currentPrecinctStats = { ara: {}, ca: {} };
+
     // --- 0. DYNAMIC MOTIVATIONAL FOOTER ---
     function updateFooter(isCA) {
         const footerNote = document.querySelector('.footer-note');
@@ -172,7 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const araTeam = ["Alejandro", "Alvan", "Arturo", "Diana", "G", "James", "Josh", "Justin", "Kurt", "Marrion", "Rob"];
     const caTeam = ["Adrian", "Aidan", "Alejandro", "Anna", "Arturo", "Cole", "Georgie", "Juwan", "Paolo"];
 
-    // Main App Dropdown
     function populateDropdown() {
         agentSelect.innerHTML = '<option value="" disabled selected>-- Choose Agent --</option>';
         const team = isCAMode ? caTeam : araTeam;
@@ -184,7 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Admin Panel Dropdown
     function populateAdminDropdown(action) {
         adminAgentSelect.innerHTML = '<option value="" disabled selected>-- Choose Agent --</option>';
         let team = [];
@@ -229,11 +230,9 @@ document.addEventListener('DOMContentLoaded', () => {
         updateWeekUI(); 
     };
     
-    // Call on first load
     populateDropdown();
     populateAdminDropdown('ARA_OVERRIDE');
 
-    // ARA UI Logic
     const actionSelect = document.getElementById('actionSelect');
     actionSelect.onchange = () => {
         const isGoal = actionSelect.value === 'GOAL';
@@ -242,7 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!isCAMode) cheatsheet.style.display = isGoal ? 'none' : 'block';
     };
 
-    // CA UI Logic
     const caActionSelect = document.getElementById('caActionSelect');
     const caGoalInputsWrapper = document.getElementById('caGoalInputsWrapper');
     const caProgressInputsWrapper = document.getElementById('caProgressInputsWrapper');
@@ -284,7 +282,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchDashboardData(weekStr) {
-        const { data, error } = await _supabase.from('utilization_logs').select('*').eq('week_of', weekStr);
+        // Enforcing Chronological Order so the LATEST goal submitted replaces the old one
+        const { data, error } = await _supabase.from('utilization_logs').select('*').eq('week_of', weekStr).order('created_at', { ascending: true });
         if (error) return;
 
         const araStats = {};
@@ -306,13 +305,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (log.agent_name.includes('ARA_OVERRIDE')) {
                 if(!araStats[name]) araStats[name] = { g: 0, p: 0 };
                 const t = parts[2], p = parts[3];
-                if (t !== "") araStats[name].g = parseFloat(t);
-                if (p !== "") araStats[name].p = parseFloat(p);
+                if (t !== "") araStats[name].g = parseFloat(t); // Overwrites
+                if (p !== "") araStats[name].p = parseFloat(p); // Overwrites
                 logs.push({ agent: name, wo: 'ARA Override', tag: `T:${t||'-'} P:${p||'-'}`, min: '-', time: log.created_at });
 
             } else if (log.agent_name.includes('CA_GOAL')) {
                 if(!caStats[name]) caStats[name] = { hours: 0, tags: 0, mbbt: 0 };
-                caStats[name].hours += parseFloat(parts[2]);
+                caStats[name].hours = parseFloat(parts[2]); // Overwrites instead of adding
                 logs.push({ agent: name, wo: 'CA Goal', tag: `Hours: ${parts[2]}`, min: '-', time: log.created_at });
             
             } else if (log.agent_name.includes('CA_PROGRESS')) {
@@ -323,11 +322,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!isNaN(t)) caStats[name].tags += t;
                 if (!isNaN(m)) caStats[name].mbbt += m;
 
-                // Smart Audit Log display
                 let tagStr = [];
                 if (!isNaN(t) && t > 0) tagStr.push(`Tags: ${t}`);
                 if (!isNaN(m) && m > 0) tagStr.push(`MBBT: ${m}`);
-                if (tagStr.length === 0) tagStr.push("Tags: 0 | MBBT: 0"); // Fallback
+                if (tagStr.length === 0) tagStr.push("Tags: 0 | MBBT: 0"); 
                 
                 logs.push({ agent: name, wo: 'CA Progress', tag: tagStr.join(' | '), min: '-', time: log.created_at });
                 
@@ -339,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 logs.push({ agent: name, wo: 'CA Data (Legacy)', tag: `H:${parts[2]} T:${parts[3]} M:${parts[4]}`, min: '-', time: log.created_at });
             } else {
                 if(!araStats[name]) araStats[name] = { g: 0, p: 0 };
-                if(log.agent_name.includes('GOAL')) araStats[name].g += log.target_minutes;
+                if(log.agent_name.includes('GOAL')) araStats[name].g = log.target_minutes; // Overwrites instead of adding
                 if(log.agent_name.includes('PROGRESS')) {
                     araStats[name].p += log.target_minutes;
                     logs.push({ agent: name, wo: parts[2] || '??', tag: parts[3] || '??', min: log.target_minutes, time: log.created_at });
@@ -352,6 +350,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+
+        // Store stats globally to check before Overwrites
+        currentPrecinctStats = { ara: araStats, ca: caStats };
 
         const list = document.getElementById('agentList');
         list.innerHTML = '';
@@ -441,25 +442,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('submitBtn').onclick = async () => {
-        if (!document.getElementById('agentSelect').value || !document.getElementById('robotCheck').checked) return alert("Missing info!");
+        const agent = document.getElementById('agentSelect').value;
+        if (!agent || !document.getElementById('robotCheck').checked) return alert("Missing info!");
         
         let dbName = "";
         let mins = 0;
 
         if (isCAMode) {
             if (caActionSelect.value === 'CA_GOAL') {
-                const hours = parseFloat(document.getElementById('caHoursInput').value);
-                if(isNaN(hours)) return alert("Please enter valid hours.");
-                dbName = `${document.getElementById('agentSelect').value}|CA_GOAL|${hours}`;
-            } else {
+                const newHours = parseFloat(document.getElementById('caHoursInput').value);
+                if(isNaN(newHours)) return alert("Please enter valid hours.");
                 
-                // NEW: CA Independent Progress Logic
+                // Smart Verification Pop-up
+                const oldHours = currentPrecinctStats?.ca[agent]?.hours || 0;
+                if (oldHours > 0 && oldHours !== newHours) {
+                    if (!confirm(`Are you sure you want to override your target from ${oldHours} hours to ${newHours} hours?`)) return;
+                }
+                
+                dbName = `${agent}|CA_GOAL|${newHours}`;
+            } else {
                 const tagsStr = document.getElementById('caTagsInput').value.trim();
                 const mbbtStr = document.getElementById('caMbbtInput').value.trim();
                 
-                if (tagsStr === "" && mbbtStr === "") {
-                    return alert("Please enter a value for either Tags or Memberships.");
-                }
+                if (tagsStr === "" && mbbtStr === "") return alert("Please enter a value for either Tags or Memberships.");
                 
                 const tags = tagsStr !== "" ? parseInt(tagsStr) : 0;
                 const mbbt = mbbtStr !== "" ? parseInt(mbbtStr) : 0;
@@ -468,12 +473,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     return alert("Please ensure the fields you entered contain valid numbers.");
                 }
 
-                dbName = `${document.getElementById('agentSelect').value}|CA_PROGRESS|${tags}|${mbbt}`;
+                dbName = `${agent}|CA_PROGRESS|${tags}|${mbbt}`;
             }
         } else {
-            dbName = `${document.getElementById('agentSelect').value}|${actionSelect.value}`;
             if (actionSelect.value === 'GOAL') {
-                mins = Math.round((parseFloat(document.getElementById('hoursInput').value) * 60) * 0.81);
+                const newHoursInput = parseFloat(document.getElementById('hoursInput').value);
+                if(isNaN(newHoursInput)) return alert("Please enter valid hours.");
+                
+                // Smart Verification Pop-up
+                const oldMins = currentPrecinctStats?.ara[agent]?.g || 0;
+                const oldHours = oldMins > 0 ? parseFloat((oldMins / 0.81 / 60).toFixed(2)) : 0;
+                if (oldHours > 0 && oldHours !== newHoursInput) {
+                    if (!confirm(`Are you sure you want to override your target from ${oldHours} hours to ${newHoursInput} hours?`)) return;
+                }
+
+                mins = Math.round((newHoursInput * 60) * 0.81);
+                dbName = `${agent}|GOAL`;
             } else {
                 const tags = [];
                 serviceSelects.forEach(s => { 
@@ -600,6 +615,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if((hoursStr !== "" && isNaN(hours)) || (tagsStr !== "" && isNaN(tags)) || (mbbtStr !== "" && isNaN(mbbt))) {
                 return alert("Please ensure the fields you entered contain valid numbers.");
             }
+
+            // Smart Verification Pop-up for Admin CA Target
+            if (hoursStr !== "") {
+                const oldHours = currentPrecinctStats?.ca[agent]?.hours || 0;
+                if (oldHours > 0 && oldHours !== hours) {
+                    if (!confirm(`Are you sure you want to override the target from ${oldHours} hours to ${hours} hours?`)) return;
+                }
+            }
+
             dbName = `${agent}|CA_OVERRIDE|${hours}|${tags}|${mbbt}`;
             
         } else if (action === 'ARA_OVERRIDE') {
@@ -614,6 +638,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if((targetStr !== "" && isNaN(target)) || (progressStr !== "" && isNaN(progress))) {
                 return alert("Please ensure the fields you entered contain valid numbers.");
             }
+
+            // Smart Verification Pop-up for Admin ARA Target
+            if (targetStr !== "") {
+                const oldMins = currentPrecinctStats?.ara[agent]?.g || 0;
+                if (oldMins > 0 && oldMins !== target) {
+                    if (!confirm(`Are you sure you want to override the target from ${oldMins} mins to ${target} mins?`)) return;
+                }
+            }
+
             dbName = `${agent}|ARA_OVERRIDE|${target}|${progress}`;
         }
         
