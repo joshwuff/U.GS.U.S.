@@ -219,6 +219,17 @@
         <button id="adminOverrideBtn" class="admin-action-btn" style="width: 100%; margin-top: 10px;">Force Update</button>
 
         <hr class="admin-divider">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h4 style="margin:0; color:var(--text);">Audit Log</h4>
+            <select id="adminAuditFilter" style="width:auto; padding:6px; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:4px; font-size:13px; font-weight:bold; outline:none;">
+                <option value="ALL">All Activity</option>
+                <option value="OVERRIDE">Overrides Only</option>
+                <option value="PROGRESS">Progress Only</option>
+                <option value="GOAL">Goals & Targets Only</option>
+            </select>
+        </div>
+
         <div class="audit-log-container">
             <table class="audit-table">
                 <thead><tr><th>Agent</th><th>WO #</th><th>Services</th><th>Min</th><th>Date & Time</th></tr></thead>
@@ -252,10 +263,4 @@
         </div>
     </div>
 
-    <div id="toast" class="toast">Data Logged!</div>
-
-    <div class="footer-note" style="text-align:center; margin-bottom:30px;">Loading...</div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+    <div id
