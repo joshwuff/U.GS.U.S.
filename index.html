@@ -5,50 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>U.GS.U.S. - Utilization System</title>
     
-    <!-- Supabase Database Library -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     
-    <!-- Link to your CSS file -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- THE NEW LOGIN SCREEN -->
-    <div id="loginScreen" class="login-screen">
-        <img src="U.GS.U.S-logo.png" alt="U.GS.U.S. Logo" class="login-logo">
-        <h2 style="margin-bottom: 20px; color: #333;">U.GS.U.S. Portal</h2>
-        <input type="password" id="mainPasswordInput" class="login-input" placeholder="Enter Precinct Password" autocomplete="off">
-        <button id="loginBtn">Access System</button>
-        <p id="loginError" class="login-error">Incorrect password.</p>
-    </div>
+    <a href="/logout" class="logout-btn" title="Lock System">🔒</a>
 
-    <!-- MAIN APP (Hidden until logged in) -->
-    <div id="mainApp" style="display: none;">
-        <img src="U.GS.U.S-logo.png" id="secretLogo" alt="Unofficial Geek Squad U.GS.U.S. Logo" class="logo">
-        <h1>U.GS.U.S. - Utilization System</h1>
+    <img src="U.GS.U.S-logo.png" id="secretLogo" alt="U.GS.U.S. Logo" class="logo">
+    <h1>U.GS.U.S. - Utilization System</h1>
 
-        <div class="main-layout">
+    <div class="main-layout">
+        
+        <div class="calculator-container">
             
-            <!-- MAIN CALCULATOR -->
-            <div class="calculator-container">
-                <div class="input-group">
-                    <label for="agentSelect" class="input-label">Select Agent</label>
-                    <select id="agentSelect" autocomplete="off">
-                        <option value="" disabled selected>-- Choose Agent --</option>
-                        <option value="Alvan">Alvan</option>
-                        <option value="Alejandro">Alejandro</option>
-                        <option value="Justin">Justin</option>
-                        <option value="Josh">Josh</option>
-                        <option value="James">James</option>
-                        <option value="Marrion">Marrion</option>
-                        <option value="Rob">Rob</option>
-                        <option value="Diana">Diana</option>
-                        <option value="Kurt">Kurt</option>
-                        <option value="G">G</option>
-                        <option value="Arturo">Arturo</option>
-                    </select>
-                </div>
+            <div class="role-toggle-container">
+                <button id="btnARA" class="role-btn active" autocomplete="off">ARA Mode</button>
+                <button id="btnCA" class="role-btn" autocomplete="off">CA Mode</button>
+            </div>
 
+            <div class="input-group">
+                <label for="agentSelect" class="input-label">Select Agent</label>
+                <select id="agentSelect" autocomplete="off">
+                    </select>
+            </div>
+
+            <div id="araInputsWrapper">
                 <div class="input-group">
                     <label for="actionSelect" class="input-label">What are you doing?</label>
                     <select id="actionSelect" autocomplete="off">
@@ -57,16 +42,14 @@
                     </select>
                 </div>
 
-                <!-- VIEW 1: GOAL SETTING -->
                 <div id="goalInputsWrapper">
                     <div class="input-group">
                         <label for="hoursInput" class="input-label">Scheduled Hours</label>
                         <input type="text" inputmode="decimal" id="hoursInput" placeholder="e.g., 35.5" autocomplete="off">
                     </div>
-                    <p class="formula-text">Math: (Hours x 60) x 0.81 = Target Minutes</p>
+                    <p class="formula-text" style="font-size:13px; color:var(--label); margin-bottom:20px;">Math: (Hours x 60) x 0.81 = Target Minutes</p>
                 </div>
 
-                <!-- VIEW 2: WORK ORDER LOGGING -->
                 <div id="progressInputsWrapper" style="display: none;">
                     <div class="wo-calc-container">
                         <div class="input-group" style="width: 100%;">
@@ -74,27 +57,29 @@
                             <input type="text" inputmode="numeric" id="woInput" placeholder="e.g., 1234" maxlength="4" autocomplete="off">
                         </div>
                         
-                        <label class="input-label" style="text-align: left;">Select Services (Up to 4)</label>
+                        <div id="sowWarningText" style="display:none; color:#d32f2f; font-weight:bold; font-size:13px; margin-bottom:5px; margin-left:5%;">⚠️ These tags are incompatible!</div>
+                        
+                        <label class="input-label" style="text-align: left; margin-left: 5%;">Select Services (Up to 4)</label>
                         <div class="wo-calc-row">
                             <select class="service-select" autocomplete="off">
                                 <option value="0" data-tag="NONE">-- Tag 1 --</option>
-                                <option value="57" data-tag="GSDB/GSRD">GSDB / GSRD (57m)</option>
+                                <option value="57" data-tag="GSDB/GSRD">GSDB (57m)</option>
                                 <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
                                 <option value="49" data-tag="GSIR">GSIR (49m)</option>
                                 <option value="25" data-tag="GSDI">GSDI (25m)</option>
-                                <option value="20" data-tag="GSOI/GSPW">GSOI / GSPW (20m)</option>
-                                <option value="18" data-tag="GSHW/GSHD">GSHW / GSHD (18m)</option>
+                                <option value="20" data-tag="GSOI/GSPW">GSOI (20m)</option>
+                                <option value="18" data-tag="GSHW/GSHD">GSHW (18m)</option>
                                 <option value="12" data-tag="GSSW">GSSW (12m)</option>
                                 <option value="4" data-tag="GSWUR">GSWUR (4m)</option>
                             </select>
                             <select class="service-select" autocomplete="off">
                                 <option value="0" data-tag="NONE">-- Tag 2 --</option>
-                                <option value="57" data-tag="GSDB/GSRD">GSDB / GSRD (57m)</option>
+                                <option value="57" data-tag="GSDB/GSRD">GSDB (57m)</option>
                                 <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
                                 <option value="49" data-tag="GSIR">GSIR (49m)</option>
                                 <option value="25" data-tag="GSDI">GSDI (25m)</option>
-                                <option value="20" data-tag="GSOI/GSPW">GSOI / GSPW (20m)</option>
-                                <option value="18" data-tag="GSHW/GSHD">GSHW / GSHD (18m)</option>
+                                <option value="20" data-tag="GSOI/GSPW">GSOI (20m)</option>
+                                <option value="18" data-tag="GSHW/GSHD">GSHW (18m)</option>
                                 <option value="12" data-tag="GSSW">GSSW (12m)</option>
                                 <option value="4" data-tag="GSWUR">GSWUR (4m)</option>
                             </select>
@@ -102,189 +87,188 @@
                         <div class="wo-calc-row">
                             <select class="service-select" autocomplete="off">
                                 <option value="0" data-tag="NONE">-- Tag 3 --</option>
-                                <option value="57" data-tag="GSDB/GSRD">GSDB / GSRD (57m)</option>
+                                <option value="57" data-tag="GSDB/GSRD">GSDB (57m)</option>
                                 <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
                                 <option value="49" data-tag="GSIR">GSIR (49m)</option>
                                 <option value="25" data-tag="GSDI">GSDI (25m)</option>
-                                <option value="20" data-tag="GSOI/GSPW">GSOI / GSPW (20m)</option>
-                                <option value="18" data-tag="GSHW/GSHD">GSHW / GSHD (18m)</option>
+                                <option value="20" data-tag="GSOI/GSPW">GSOI (20m)</option>
+                                <option value="18" data-tag="GSHW/GSHD">GSHW (18m)</option>
                                 <option value="12" data-tag="GSSW">GSSW (12m)</option>
                                 <option value="4" data-tag="GSWUR">GSWUR (4m)</option>
                             </select>
                             <select class="service-select" autocomplete="off">
                                 <option value="0" data-tag="NONE">-- Tag 4 --</option>
-                                <option value="57" data-tag="GSDB/GSRD">GSDB / GSRD (57m)</option>
+                                <option value="57" data-tag="GSDB/GSRD">GSDB (57m)</option>
                                 <option value="49" data-tag="GSOSR">GSOSR (49m)</option>
                                 <option value="49" data-tag="GSIR">GSIR (49m)</option>
                                 <option value="25" data-tag="GSDI">GSDI (25m)</option>
-                                <option value="20" data-tag="GSOI/GSPW">GSOI / GSPW (20m)</option>
-                                <option value="18" data-tag="GSHW/GSHD">GSHW / GSHD (18m)</option>
+                                <option value="20" data-tag="GSOI/GSPW">GSOI (20m)</option>
+                                <option value="18" data-tag="GSHW/GSHD">GSHW (18m)</option>
                                 <option value="12" data-tag="GSSW">GSSW (12m)</option>
                                 <option value="4" data-tag="GSWUR">GSWUR (4m)</option>
                             </select>
                         </div>
-                        
                         <div id="calculatedTotalDisplay" class="wo-total-display">Calculated Minutes: 0</div>
                     </div>
                 </div>
+            </div>
 
-                <div class="fake-recaptcha">
-                    <label class="fake-recaptcha-left" for="robotCheck">
-                        <input type="checkbox" id="robotCheck" autocomplete="off">
-                        <span>I'm not a robot</span>
-                    </label>
-                    <div class="fake-recaptcha-right">
-                        <div class="icon">↻</div>
-                        <div class="text">reCAPTCHA</div>
+            <div id="caInputsWrapper" style="display: none;">
+                
+                <div class="input-group">
+                    <label for="caActionSelect" class="input-label">What are you doing?</label>
+                    <select id="caActionSelect" autocomplete="off">
+                        <option value="CA_GOAL">1. Set Scheduled Target for the Week</option>
+                        <option value="CA_PROGRESS">2. Log Tags & Memberships</option>
+                    </select>
+                </div>
+
+                <div id="caGoalInputsWrapper">
+                    <div class="input-group">
+                        <label for="caHoursInput" class="input-label">Scheduled Hours</label>
+                        <input type="text" inputmode="decimal" id="caHoursInput" placeholder="e.g., 32" autocomplete="off">
                     </div>
                 </div>
 
-                <p id="lockWarning" class="lock-warning">Public inputs locked. Return to current week or use Admin Panel.</p>
-                <button id="submitBtn">Submit Data</button>
-
-                <div class="result-section">
-                    <p id="resultOutput" class="result-output">Ready to sync...</p>
+                <div id="caProgressInputsWrapper" style="display: none;">
+                    <div class="wo-calc-container">
+                        <div class="input-group" style="width: 100%;">
+                            <label for="caTagsInput" class="input-label">Tags Created</label>
+                            <input type="text" inputmode="numeric" id="caTagsInput" placeholder="e.g., 5" autocomplete="off">
+                        </div>
+                        <div class="input-group" style="width: 100%; margin-bottom: 5px;">
+                            <label for="caMbbtInput" class="input-label">MBBT Memberships</label>
+                            <input type="text" inputmode="numeric" id="caMbbtInput" placeholder="e.g., 1" autocomplete="off">
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- CHEAT SHEET SIDE PANEL -->
-            <div id="cheatsheetContainer" class="cheatsheet-container" style="display: none;">
-                <h3>Service Grid</h3>
-                <div class="cheatsheet-grid">
-                    <span class="cs-tag">GSDB / GSRD</span> <span class="cs-min">57m</span>
-                    <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Data Backup / Recovery</span>
-                    
-                    <span class="cs-tag">GSOSR</span> <span class="cs-min">49m</span>
-                    <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Operating System Repair</span>
-                    
-                    <span class="cs-tag">GSIR</span> <span class="cs-min">49m</span>
-                    <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">iPhone Repair</span>
-
-                    <span class="cs-tag">GSDI</span> <span class="cs-min">25m</span>
-                    <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Diagnostics</span>
-                    
-                    <span class="cs-tag">GSOI / GSPW</span> <span class="cs-min">20m</span>
-                    <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">OS Install / Password Reset</span>
-                    
-                    <span class="cs-tag">GSHW / GSHD</span> <span class="cs-min">18m</span>
-                    <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Hardware / Hard Drive</span>
-                    
-                    <span class="cs-tag">GSSW</span> <span class="cs-min">12m</span>
-                    <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Software Install / Repair</span>
-                    
-                    <span class="cs-tag">GSWUR</span> <span class="cs-min">4m</span>
-                    <span style="grid-column: span 2; font-size: 11px; color:#888; margin-top:-8px;">Whole Unit Replacement</span>
+            <div class="fake-recaptcha">
+                <div class="fake-recaptcha-left">
+                    <input type="checkbox" id="robotCheck" autocomplete="off">
+                    <span class="rc-text">I'm not a robot</span>
+                </div>
+                <div class="fake-recaptcha-right">
+                    <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" class="rc-logo" alt="reCAPTCHA">
+                    <div class="rc-brand">reCAPTCHA</div>
+                    <div class="rc-links">Privacy - Terms</div>
                 </div>
             </div>
 
+            <p id="lockWarning" class="lock-warning" style="display:none; color:#d32f2f; font-size:12px; font-weight:bold; margin-bottom:10px;">Public inputs locked. Use Admin Panel or return to current week.</p>
+            <button id="submitBtn" class="primary-btn">Submit Data</button>
+            <p id="resultOutput" class="result-output" style="margin-top:15px; font-style:italic; color:var(--label); font-size:14px;">Ready to sync...</p>
         </div>
 
-        <!-- DASHBOARD -->
-        <div class="dashboard">
-            <div class="dashboard-header">
-                <h2>Precinct Totals</h2>
-                <div class="week-controls">
-                    <button id="prevWeekBtn" class="nav-btn" title="Previous Week">&#10094;</button>
-                    <span class="week-label" id="weekLabel">Loading week...</span>
-                    <button id="calendarBtn" class="nav-btn" title="Select Week">📅</button>
-                    <button id="nextWeekBtn" class="nav-btn" title="Next Week">&#10095;</button>
-                    <button id="currentWeekBtn" class="nav-btn" title="Jump to Current Week" style="margin-left: 5px;">↺</button>
-                </div>
+        <div id="cheatsheetContainer" class="cheatsheet-container" style="display: none;">
+            <h3 style="margin-top:0; color:var(--accent); border-bottom:2px solid var(--accent); padding-bottom:10px; text-align:center;">Service Grid</h3>
+            <div class="cheatsheet-grid">
+                <span class="cs-tag">GSDB / GSRD</span> <span class="cs-min">57m</span>
+                <span class="cs-tag">GSOSR</span> <span class="cs-min">49m</span>
+                <span class="cs-tag">GSIR</span> <span class="cs-min">49m</span>
+                <span class="cs-tag">GSDI</span> <span class="cs-min">25m</span>
+                <span class="cs-tag">GSOI / GSPW</span> <span class="cs-min">20m</span>
+                <span class="cs-tag">GSHW / GSHD</span> <span class="cs-min">18m</span>
+                <span class="cs-tag">GSSW</span> <span class="cs-min">12m</span>
+                <span class="cs-tag">GSWUR</span> <span class="cs-min">4m</span>
             </div>
-            <ul class="agent-list" id="agentList">
-                <li class="agent-item" style="color:#999; text-align:center;">Connecting to database...</li>
-            </ul>
         </div>
+    </div>
 
-        <!-- The Hidden Admin Panel -->
-        <div id="adminPanel" class="admin-panel" style="display: none;">
-            <span class="close-admin-btn" id="closeAdminBtn">✖</span>
-            <h3>🛡️ Precinct Admin Override</h3>
+    <div class="dashboard">
+        <div class="dashboard-header" style="text-align:center; border-bottom:2px solid var(--accent); padding-bottom:10px; margin-bottom:15px;">
+            <h2 style="margin:0 0 10px 0;">Precinct Totals</h2>
+            <div class="week-controls">
+                <button id="prevWeekBtn" class="nav-btn" title="Previous Week">❮</button>
+                <span class="week-label" id="weekLabel" style="font-weight:bold; min-width:160px;">Loading...</span>
+                <button id="calendarBtn" class="nav-btn" title="Select Week">📅</button>
+                <button id="nextWeekBtn" class="nav-btn" title="Next Week">❯</button>
+                <button id="currentWeekBtn" class="nav-btn" title="Jump to Current Week">↺</button>
+            </div>
+        </div>
+        <ul class="agent-list" id="agentList">
+            <li class="agent-item" style="text-align:center; color:var(--label);">Connecting to database...</li>
+        </ul>
+    </div>
+
+    <div id="adminPanel" class="admin-panel" style="display: none;">
+        <span class="close-admin-btn" id="closeAdminBtn">✖</span>
+        <h3 style="margin-top:0; color:#c62828; margin-bottom:20px;">🛡️ Precinct Admin Override</h3>
+        
+        <div class="admin-edit-group">
+            <select id="adminAgentSelect">
+                </select>
             
-            <div style="text-align: left; font-size: 14px; font-weight: bold; color: #555; margin-bottom: 5px;">Edit Agent For Selected Week:</div>
-            <div class="admin-edit-group">
-                <select id="adminAgentSelect" autocomplete="off">
-                    <option value="Alvan">Alvan</option>
-                    <option value="Alejandro">Alejandro</option>
-                    <option value="Justin">Justin</option>
-                    <option value="Josh" selected>Josh</option>
-                    <option value="James">James</option>
-                    <option value="Marrion">Marrion</option>
-                    <option value="Rob">Rob</option>
-                    <option value="Diana">Diana</option>
-                    <option value="Kurt">Kurt</option>
-                    <option value="G">G</option>
-                    <option value="Arturo">Arturo</option>
-                </select>
-                <select id="adminActionSelect" autocomplete="off">
-                    <option value="GOAL">Target</option>
-                    <option value="PROGRESS">Progress</option>
-                </select>
-                <input type="text" inputmode="numeric" id="adminValueInput" placeholder="Total Mins" autocomplete="off">
-            </div>
-            <button id="adminOverrideBtn" class="admin-action-btn" style="background-color: #333;">Force Update Agent</button>
-            <p id="adminFeedback" style="font-size: 12px; color: #d32f2f; margin-top: 5px; height: 14px;"></p>
-
-            <hr class="admin-divider">
-
-            <!-- Work Order Audit Log -->
-            <div style="text-align: left; font-size: 14px; font-weight: bold; color: #555; margin-bottom: 5px;">Work Order Audit Log:</div>
-            <div class="audit-log-container">
-                <table class="audit-table">
-                    <thead>
-                        <tr>
-                            <th>Agent</th>
-                            <th>WO #</th>
-                            <th>Services</th>
-                            <th>Min</th>
-                            <th>Logged At</th>
-                        </tr>
-                    </thead>
-                    <tbody id="auditLogBody">
-                        <!-- Logs injected here -->
-                    </tbody>
-                </table>
-            </div>
-
-            <hr class="admin-divider">
-
-            <p style="font-size: 13px; color: #555; margin-bottom: 10px;">
-                Warning: Wiping the database deletes all data for the <strong>selected week</strong>.
-            </p>
-            <button id="resetDataBtn" class="admin-action-btn">Wipe Selected Week Data</button>
+            <select id="adminActionSelect">
+                <option value="ARA_OVERRIDE">ARA Target/Progress (Override)</option>
+                <option value="CA_OVERRIDE">CA Target/Progress (Override)</option>
+                <option value="REMOVE_AGENT">Remove Agent from Week</option>
+            </select>
         </div>
 
-        <!-- Security Password Modal -->
-        <div id="passwordModal" class="modal-overlay">
-            <div class="modal-content">
-                <h3>SECURITY OVERRIDE</h3>
-                <p style="font-size: 14px; color: #666; margin-bottom: 15px;">Enter Authorization Code:</p>
-                <input type="password" id="secretCodeInput" placeholder="********" autocomplete="off">
-                <button id="authSubmitBtn" class="modal-btn">Access System</button>
-                <button id="authCancelBtn" class="modal-btn modal-cancel">Cancel</button>
-            </div>
+        <div id="adminAraInputs" class="admin-edit-group" style="width: 100%; gap: 5px;">
+            <input type="text" id="adminAraTarget" placeholder="Target Mins" style="width: 50%;">
+            <input type="text" id="adminAraProgress" placeholder="Progress Mins" style="width: 50%;">
         </div>
 
-        <!-- Custom Calendar Modal -->
-        <div id="calendarModal" class="modal-overlay">
-            <div class="modal-content calendar-content">
-                <div class="calendar-header">
-                    <button id="calPrevMonth" class="calendar-nav-btn">&#10094;</button>
-                    <span id="calMonthYear">Loading...</span>
-                    <button id="calNextMonth" class="calendar-nav-btn">&#10095;</button>
-                </div>
-                <div class="calendar-grid-header">
-                    <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
-                </div>
-                <div id="calendarGrid" class="calendar-grid"></div>
-                <button id="calCancelBtn" class="modal-btn modal-cancel">Cancel</button>
-            </div>
+        <div id="adminCaInputs" class="admin-edit-group" style="display: none; width: 100%; gap: 5px;">
+            <input type="text" id="adminCaHours" placeholder="Hours" style="width: 33%;">
+            <input type="text" id="adminCaTags" placeholder="Tags" style="width: 33%;">
+            <input type="text" id="adminCaMbbt" placeholder="MBBT" style="width: 33%;">
         </div>
 
-        <div class="footer-note">Target: 81% (0.81) | You can do it!!! | v<span id="appVersionDisplay"></span></div>
-    </div> <!-- END MAIN APP -->
+        <button id="adminOverrideBtn" class="admin-action-btn" style="width: 100%; margin-top: 10px;">Force Update</button>
 
-    <!-- Link to your Javascript file -->
+        <hr class="admin-divider">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h4 style="margin:0; color:var(--text);">Audit Log</h4>
+            <select id="adminAuditFilter" style="width:auto; padding:6px; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:4px; font-size:13px; font-weight:bold; outline:none;">
+                <option value="ALL">All Activity</option>
+                <option value="OVERRIDE">Overrides Only</option>
+                <option value="PROGRESS">Progress Only</option>
+                <option value="GOAL">Goals & Targets Only</option>
+            </select>
+        </div>
+
+        <div class="audit-log-container">
+            <table class="audit-table">
+                <thead><tr><th>Agent</th><th>WO #</th><th>Services</th><th>Min</th><th>Date & Time</th></tr></thead>
+                <tbody id="auditLogBody"></tbody>
+            </table>
+        </div>
+        <button id="resetDataBtn" class="admin-action-btn" style="background:#d32f2f; margin-top:20px;">Wipe Selected Week</button>
+    </div>
+
+    <div id="calendarModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="calendar-header" style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; font-size:16px;">
+                <button id="calPrevMonth" class="nav-btn">❮</button>
+                <span id="calMonthYear"></span>
+                <button id="calNextMonth" class="nav-btn">❯</button>
+            </div>
+            <div class="calendar-grid-header">
+                <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+            </div>
+            <div id="calendarGrid"></div>
+            <button id="calCancelBtn" class="cancel-btn">Cancel</button>
+        </div>
+    </div>
+
+    <div id="passwordModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">ADMIN LOGIN</h3>
+            <input type="password" id="secretCodeInput" placeholder="Password">
+            <button id="authSubmitBtn" class="primary-btn" style="margin-top:15px;">Access</button>
+            <button id="authCancelBtn" class="cancel-btn">Cancel</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Data Logged!</div>
+
+    <div class="footer-note" style="text-align:center; margin-bottom:30px;">Loading...</div>
+
     <script src="script.js"></script>
 </body>
 </html>
