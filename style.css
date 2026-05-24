@@ -1,139 +1,395 @@
-:root {
-    --bg: #f0f0f0; --card: #ffffff; --text: #333333; --border: #cccccc; --accent: #f57c00; --label: #666; --shadow: rgba(0,0,0,0.1);
-}
-[data-theme="dark"] {
-    --bg: #111111; --card: #1e1e1e; --text: #eeeeee; --border: #444444; --label: #aaaaaa; --shadow: rgba(0,0,0,0.5);
-}
-
-body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; transition: 0.3s; margin: 0; min-height: 100vh; }
-
-.main-layout { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; width: 100%; max-width: 900px; margin-bottom: 20px; }
-
-.calculator-container, .dashboard, .cheatsheet-container, .admin-panel {
-    background: var(--card); padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px var(--shadow); width: 100%; box-sizing: border-box;
+body {
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
-.calculator-container { max-width: 500px; flex: 1; text-align: center; }
-.cheatsheet-container { max-width: 350px; flex: 1; height: fit-content; }
-.dashboard { max-width: 600px; margin-top: 20px; }
-
-/* --- NEW: ROLE TOGGLE --- */
-.role-toggle-container { display: flex; width: 90%; margin: 0 auto 20px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
-.role-btn { flex: 1; padding: 12px; border: none; background: var(--bg); color: var(--text); font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 15px;}
-.role-btn.active { background: var(--accent); color: white; }
-
-.input-group { width: 90%; margin: 0 auto 20px; text-align: left; }
-.input-label { font-weight: bold; font-size: 14px; color: var(--label); margin-bottom: 5px; display: block; }
-
-input, select { width: 100%; padding: 10px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
-
-.primary-btn { background: var(--accent); color: white; border: none; padding: 15px; width: 90%; border-radius: 4px; cursor: pointer; font-size: 18px; font-weight: bold; }
-.nav-btn { background: none; border: none; color: var(--accent); font-size: 20px; cursor: pointer; padding: 5px; }
-
-.wo-calc-container { background: var(--bg); border: 1px solid var(--border); padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-.wo-calc-row { display: flex; gap: 10px; margin-bottom: 10px; }
-.wo-total-display { font-weight: bold; color: #4CAF50; margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px; }
-
-/* --- AUTHENTIC RECAPTCHA STYLES --- */
-.fake-recaptcha { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    background: var(--card); 
-    border: 1px solid var(--border); 
-    padding: 10px 12px; 
-    border-radius: 3px; 
-    margin: 0 auto 20px auto; 
-    width: 100%; 
-    max-width: 304px; 
-    box-shadow: 0 2px 4px var(--shadow);
-    box-sizing: border-box; 
-    font-family: "Roboto", Arial, sans-serif;
+/* NEW LOGIN SCREEN STYLES */
+.login-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
 }
-.fake-recaptcha-left { display: flex; align-items: center; gap: 12px; }
-.fake-recaptcha-left input[type="checkbox"] { width: 28px; height: 28px; margin: 0; cursor: pointer; accent-color: #4a90e2; }
-.rc-text { font-size: 14px; color: var(--text); font-weight: 400; }
-.fake-recaptcha-right { display: flex; flex-direction: column; align-items: center; }
-.rc-logo { width: 28px; opacity: 0.9; margin-bottom: 2px; }
-.rc-brand { font-size: 10px; color: var(--label); }
-.rc-links { font-size: 8px; color: var(--label); margin-top: 2px; }
 
-/* --- THEME TOGGLE BUTTON --- */
-.theme-toggle-btn { position: fixed; top: 15px; right: 15px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 50%; width: 45px; height: 45px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; z-index: 3000; }
-
-.week-controls { display: flex; justify-content: center; align-items: center; gap: 10px; background: var(--bg); padding: 10px; border-radius: 8px; }
-
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 4000; justify-content: center; align-items: center; }
-.modal-content { background: var(--card); padding: 25px; border-radius: 8px; width: 340px; text-align: center; }
-
-/* --- CALENDAR ROW SELECTOR STYLES --- */
-.calendar-body { display: flex; flex-direction: column; gap: 2px; margin-top: 10px; }
-.calendar-row { display: grid; grid-template-columns: repeat(7, 1fr); border-radius: 4px; cursor: pointer; transition: 0.1s; }
-.calendar-row:hover { background: var(--accent); color: white; transform: scale(1.02); }
-.calendar-day { padding: 10px; text-align: center; font-size: 14px; }
-.calendar-day.empty { opacity: 0; }
-.calendar-grid-header { display: grid; grid-template-columns: repeat(7, 1fr); font-weight: bold; text-align: center; font-size: 12px; margin-top: 10px; opacity: 0.6; }
-
-.agent-item { list-style: none; padding: 15px 0; border-bottom: 1px solid var(--border); }
-.logo { max-width: 220px; margin-bottom: 25px; }
-.audit-table { width: 100%; font-size: 12px; border-collapse: collapse; }
-.audit-table th { background: var(--accent); color: #fff; padding: 8px; position: sticky; top: 0; }
-.audit-table td { padding: 8px; border-bottom: 1px solid var(--border); text-align: center; color: var(--text); }
-
-/* --- ADMIN PANEL SPECIFIC STYLES --- */
-.admin-action-btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; }
-.cancel-btn { background: #777; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 18px; font-weight: bold; margin-top: 10px; box-sizing: border-box; }
-.close-admin-btn { float: right; cursor: pointer; font-size: 20px; color: var(--label); }
-.close-admin-btn:hover { color: #ff5252; }
-.admin-edit-group { display: flex; gap: 10px; margin-bottom: 15px; }
-.admin-divider { border: 0; height: 1px; background: var(--border); margin: 25px 0; }
-.audit-log-container { overflow-x: auto; max-height: 350px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); }
-
-/* --- CHEAT SHEET STYLES --- */
-.cheatsheet-grid { display: grid; grid-template-columns: 1fr auto; row-gap: 12px; margin-top: 20px; text-align: left; font-size: 15px; align-items: center; }
-.cs-tag { font-weight: bold; color: var(--text); }
-.cs-min { color: var(--accent); font-weight: bold; background: var(--bg); padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border); text-align: right; }
-
-/* --- LOGOUT BUTTON --- */
-.logout-btn { 
-    position: fixed; 
-    top: 15px; 
-    left: 15px; 
-    background: var(--card); 
-    border: 1px solid var(--border); 
-    color: var(--text); 
-    border-radius: 50%; 
-    width: 45px; 
-    height: 45px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    font-size: 20px; 
-    z-index: 3000; 
-    text-decoration: none;
-    box-shadow: 0 2px 4px var(--shadow);
-    transition: 0.2s ease-in-out;
+.login-logo {
+    max-width: 250px;
+    margin-bottom: 30px;
 }
-.logout-btn:hover { background: #ff5252; transform: scale(1.1); }
 
-/* --- TOAST NOTIFICATION --- */
-.toast {
-    visibility: hidden;
-    min-width: 250px;
-    background-color: #4CAF50;
-    color: white;
+.login-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 15px;
     text-align: center;
+}
+
+.login-error {
+    color: #d32f2f;
+    font-size: 14px;
+    margin-top: 10px;
+    display: none;
+}
+
+/* MAIN APP WRAPPER */
+#mainApp {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    min-height: 100vh;
+}
+
+.logo {
+    display: block;
+    margin: 0 auto 30px;
+    max-width: 250px;
+    height: auto;
+    cursor: default; 
+    user-select: none;
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #000000;
+    margin-bottom: 20px;
+    text-align: center;
+    width: 100%;
+}
+
+.main-layout {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 900px; 
+    margin-bottom: 20px;
+}
+
+.calculator-container {
+    background-color: #ffffff;
+    flex: 1;
+    min-width: 300px;
+    max-width: 500px;
+    padding: 30px;
     border-radius: 8px;
-    padding: 16px;
-    position: fixed;
-    z-index: 5000;
-    left: 50%;
-    bottom: 20px;
-    transform: translateX(-50%);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.cheatsheet-container {
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 350px;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    height: fit-content;
+}
+
+.cheatsheet-container h3 {
+    margin-top: 0;
+    color: #f57c00;
+    border-bottom: 2px solid #f57c00;
+    padding-bottom: 10px;
+    text-align: center;
+}
+
+.cheatsheet-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px 15px;
+    font-size: 14px;
+    color: #444;
+}
+
+.cs-tag { font-weight: bold; color: #000; }
+.cs-min { background: #f9f9f9; padding: 4px 8px; border-radius: 4px; border: 1px solid #eee; text-align: right;}
+
+.input-group {
+    width: 90%;
+    margin: 0 auto 20px;
+    text-align: left;
+}
+
+.input-label {
+    display: block;
+    font-size: 14px;
+    color: #666666;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+input[type="text"], input[type="number"], input[type="password"], select {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    box-sizing: border-box; 
+}
+
+input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.formula-text {
+    font-size: 13px;
+    color: #555555;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    padding: 8px;
+    border-radius: 4px;
+    border-left: 3px solid #f57c00;
+    width: 90%;
+    margin: 0 auto 20px auto;
+    box-sizing: border-box;
+}
+
+.wo-calc-container {
+    background-color: #fdfdfd;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 15px;
+    margin: 0 auto 20px auto;
+    width: 90%;
+    box-sizing: border-box;
+}
+
+.wo-calc-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.wo-calc-row select { font-size: 14px; padding: 8px; }
+
+.wo-total-display {
     font-size: 16px;
     font-weight: bold;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    opacity: 0;
-    transition: opacity 0.4s, bottom 0.4s;
+    color: #4CAF50;
+    text-align: center;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed #ccc;
 }
-.toast.show { visibility: visible; opacity: 1; bottom: 40px; }
+
+.fake-recaptcha {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fafafa;
+    border: 1px solid #d3d3d3;
+    border-radius: 3px;
+    padding: 10px 15px;
+    margin: 0 auto 20px auto;
+    width: 90%;
+    box-sizing: border-box;
+}
+
+.fake-recaptcha-left {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.fake-recaptcha-left input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    cursor: pointer;
+}
+
+.fake-recaptcha-left span {
+    font-size: 14px;
+    color: #555555;
+}
+
+.fake-recaptcha-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.fake-recaptcha-right .icon {
+    font-size: 20px;
+    color: #4a90e2;
+    margin-bottom: 2px;
+}
+
+.fake-recaptcha-right .text {
+    font-size: 10px;
+    color: #999999;
+}
+
+button {
+    background-color: #f57c00; 
+    color: #ffffff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 90%;
+    margin-bottom: 10px;
+}
+
+button:hover { background-color: #e66a00; }
+button:disabled { background-color: #cccccc; cursor: not-allowed; }
+
+.result-section { margin-top: 20px; }
+.result-output { font-size: 18px; color: #666666; font-style: italic; }
+.lock-warning { color: #d32f2f; font-size: 12px; font-weight: bold; margin-bottom: 10px; display: none; }
+
+/* Dashboard Styling */
+.dashboard {
+    width: 100%;
+    max-width: 600px;
+    background-color: #ffffff;
+    padding: 20px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    margin-bottom: 20px;
+}
+
+.dashboard-header {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 2px solid #f57c00;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.dashboard-header h2 { font-size: 20px; margin: 0 0 10px 0; text-align: center; }
+
+.week-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    background: #f9f9f9;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #eee;
+    position: relative;
+}
+
+.week-label {
+    font-size: 15px;
+    color: #333333;
+    font-weight: bold;
+    min-width: 160px;
+    text-align: center;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: #f57c00;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 5px;
+    width: auto;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.nav-btn:hover { color: #e66a00; background: none; }
+
+.agent-list { list-style: none; padding: 0; margin: 0; }
+.agent-item { padding: 15px 0; border-bottom: 1px solid #eeeeee; }
+.agent-item:last-child { border-bottom: none; }
+.agent-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 16px; }
+.agent-name { font-weight: bold; }
+.agent-stats { color: #555555; font-size: 14px; }
+.progress-bar-bg { background-color: #e0e0e0; border-radius: 4px; height: 12px; width: 100%; overflow: hidden; }
+.progress-bar-fill { background-color: #4CAF50; height: 100%; transition: width 0.5s ease-in-out; }
+
+/* --- CUSTOM MODALS --- */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1000; justify-content: center; align-items: center; }
+.modal-content { background: white; padding: 30px; border-radius: 8px; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.modal-content h3 { margin-top: 0; color: #333; }
+.modal-btn { background-color: #333; color: white; margin-top: 15px; padding: 10px; width: 100%; font-size: 16px; }
+.modal-btn:hover { background-color: #000; }
+.modal-cancel { background-color: #ccc; color: #333; margin-top: 5px; }
+.modal-cancel:hover { background-color: #aaa; }
+
+/* Calendar Styles */
+.calendar-content { padding: 20px; max-width: 300px; }
+.calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: bold; font-size: 16px; color: #333; }
+.calendar-nav-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: #f57c00; padding: 5px; width: auto; font-family: Arial, sans-serif;}
+.calendar-grid-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; color: #888; margin-bottom: 5px; font-weight: bold; }
+.calendar-grid { display: flex; flex-direction: column; gap: 2px; margin-bottom: 15px; }
+.calendar-week { display: grid; grid-template-columns: repeat(7, 1fr); cursor: pointer; border-radius: 4px; transition: background-color 0.2s; }
+.calendar-week:hover { background-color: #ffe0b2; }
+.calendar-day { text-align: center; padding: 8px 0; font-size: 14px; color: #333; pointer-events: none; }
+.calendar-day.muted { color: #ccc; }
+
+/* --- ADMIN PANEL STYLES --- */
+.admin-panel { width: 100%; max-width: 600px; background-color: #ffebee; border: 2px solid #ef5350; padding: 20px; border-radius: 8px; box-sizing: border-box; text-align: center; margin-bottom: 20px; position: relative; }
+.close-admin-btn { position: absolute; top: 10px; right: 15px; font-size: 20px; font-weight: bold; color: #d32f2f; cursor: pointer; }
+.close-admin-btn:hover { color: #b71c1c; }
+.admin-panel h3 { margin-top: 0; color: #c62828; margin-bottom: 20px; }
+.admin-divider { border: 0; height: 1px; background: #ef5350; margin: 20px 0; opacity: 0.5; }
+.admin-edit-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+.admin-edit-group select, .admin-edit-group input { flex: 1; min-width: 120px; padding: 8px; font-size: 14px; }
+.admin-action-btn { background-color: #d32f2f; color: white; border: none; padding: 10px 20px; font-size: 14px; border-radius: 4px; cursor: pointer; width: 100%; }
+.admin-action-btn:hover { background-color: #b71c1c; }
+
+/* Audit Log Table */
+.audit-log-container {
+    margin-top: 15px;
+    background: #fff;
+    border-radius: 6px;
+    border: 1px solid #ffcdd2;
+    max-height: 250px;
+    overflow-y: auto;
+    text-align: left;
+}
+.audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.audit-table th {
+    background-color: #ef5350;
+    color: white;
+    padding: 8px;
+    position: sticky;
+    top: 0;
+    text-align: left;
+}
+.audit-table td {
+    padding: 8px;
+    border-bottom: 1px solid #ffcdd2;
+    color: #333;
+}
+.audit-table tr:hover { background-color: #ffebee; }
+
+.footer-note { font-size: 12px; color: #888888; text-align: center; margin-bottom: 30px; }
