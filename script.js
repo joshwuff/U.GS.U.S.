@@ -1,4 +1,4 @@
-const APP_VERSION = "6.1";
+const APP_VERSION = "6.1.3";
 
 // --- INITIALIZE SUPABASE ---
 const _supabase = supabase.createClient(
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Team Arrays
     const araTeam = ["Alejandro", "Alvan", "Arturo", "Diana", "G", "James", "Josh", "Justin", "Kurt", "Marrion", "Rob"];
-    const caTeam = ["Adrian", "Aidan", "Alejandro", "Anna", "Arturo", "Cole", "Georgie", "Juwan", "Paolo"];
+    const caTeam = ["Adrian", "Aidan", "Alejandro", "Anna", "Arturo", "Cole", "Georgie", "Juwan", "Paulo"];
 
     function populateDropdown() {
         agentSelect.innerHTML = '<option value="" disabled selected>-- Choose Agent --</option>';
