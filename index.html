@@ -39,6 +39,7 @@
                     <select id="actionSelect" autocomplete="off">
                         <option value="GOAL">1. Set Scheduled Target for the Week</option>
                         <option value="PROGRESS">2. Log a Completed Work Order</option>
+                        <option value="OPEN_BOX">3. Log an Open Box Tag</option>
                     </select>
                 </div>
 
@@ -109,10 +110,20 @@
                         <div id="calculatedTotalDisplay" class="wo-total-display">Calculated Minutes: 0</div>
                     </div>
                 </div>
+
+                <div id="openBoxInputsWrapper" style="display: none;">
+                    <div class="wo-calc-container">
+                        <div class="input-group" style="width: 100%;">
+                            <label for="lpnInput" class="input-label">Last 4 of LPN</label>
+                            <input type="text" inputmode="numeric" id="lpnInput" placeholder="e.g., 5678" maxlength="4" autocomplete="off">
+                        </div>
+                        <p style="font-size:13px; color:var(--label); margin-top:10px;">Note: Open Box tags do not calculate towards utilization minutes.</p>
+                    </div>
+                </div>
+
             </div>
 
             <div id="caInputsWrapper" style="display: none;">
-                
                 <div class="input-group">
                     <label for="caActionSelect" class="input-label">What are you doing?</label>
                     <select id="caActionSelect" autocomplete="off">
@@ -120,14 +131,12 @@
                         <option value="CA_PROGRESS">2. Log Tags & Memberships</option>
                     </select>
                 </div>
-
                 <div id="caGoalInputsWrapper">
                     <div class="input-group">
                         <label for="caHoursInput" class="input-label">Scheduled Hours</label>
                         <input type="text" inputmode="decimal" id="caHoursInput" placeholder="e.g., 32" autocomplete="off">
                     </div>
                 </div>
-
                 <div id="caProgressInputsWrapper" style="display: none;">
                     <div class="wo-calc-container">
                         <div class="input-group" style="width: 100%;">
@@ -193,46 +202,38 @@
     <div id="adminPanel" class="admin-panel" style="display: none;">
         <span class="close-admin-btn" id="closeAdminBtn">✖</span>
         <h3 style="margin-top:0; color:#c62828; margin-bottom:20px;">🛡️ Precinct Admin Override</h3>
-        
         <div class="admin-edit-group">
-            <select id="adminAgentSelect">
-                </select>
-            
+            <select id="adminAgentSelect"></select>
             <select id="adminActionSelect">
                 <option value="ARA_OVERRIDE">ARA Target/Progress (Override)</option>
                 <option value="CA_OVERRIDE">CA Target/Progress (Override)</option>
                 <option value="REMOVE_AGENT">Remove Agent from Week</option>
             </select>
         </div>
-
         <div id="adminAraInputs" class="admin-edit-group" style="width: 100%; gap: 5px;">
             <input type="text" id="adminAraTarget" placeholder="Target Mins" style="width: 50%;">
             <input type="text" id="adminAraProgress" placeholder="Progress Mins" style="width: 50%;">
         </div>
-
         <div id="adminCaInputs" class="admin-edit-group" style="display: none; width: 100%; gap: 5px;">
             <input type="text" id="adminCaHours" placeholder="Hours" style="width: 33%;">
             <input type="text" id="adminCaTags" placeholder="Tags" style="width: 33%;">
             <input type="text" id="adminCaMbbt" placeholder="MBBT" style="width: 33%;">
         </div>
-
         <button id="adminOverrideBtn" class="admin-action-btn" style="width: 100%; margin-top: 10px;">Force Update</button>
-
         <hr class="admin-divider">
-        
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <h4 style="margin:0; color:var(--text);">Audit Log</h4>
             <select id="adminAuditFilter" style="width:auto; padding:6px; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:4px; font-size:13px; font-weight:bold; outline:none;">
                 <option value="ALL">All Activity</option>
                 <option value="OVERRIDE">Overrides Only</option>
                 <option value="PROGRESS">Progress Only</option>
+                <option value="OPEN_BOX">Open Box Only</option>
                 <option value="GOAL">Goals & Targets Only</option>
             </select>
         </div>
-
         <div class="audit-log-container">
             <table class="audit-table">
-                <thead><tr><th>Agent</th><th>WO #</th><th>Services</th><th>Min</th><th>Date & Time</th></tr></thead>
+                <thead><tr><th>Agent</th><th>WO/LPN #</th><th>Services/Type</th><th>Min</th><th>Date & Time</th></tr></thead>
                 <tbody id="auditLogBody"></tbody>
             </table>
         </div>
@@ -264,9 +265,7 @@
     </div>
 
     <div id="toast" class="toast">Data Logged!</div>
-
     <div class="footer-note" style="text-align:center; margin-bottom:30px;">Loading...</div>
-
     <script src="script.js"></script>
 </body>
 </html>
