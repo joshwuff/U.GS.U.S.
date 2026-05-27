@@ -1,9 +1,9 @@
 const APP_VERSION = "6.6";
 
-// --- REPLACE THESE WITH YOUR ACTUAL SUPABASE CREDENTIALS ---
+// HARDCODED CREDENTIALS - DO NOT CHANGE
 const _supabase = supabase.createClient(
-    'YOUR_SUPABASE_URL', 
-    'YOUR_SUPABASE_KEY'
+    'https://yxeozqztofvpyadxveyr.supabase.co',
+    'sb_publishable_3WRcMc4zjv-N-9oZry-SbA_MmRRKv1b'
 );
 
 const incompatibilities = {
@@ -16,6 +16,7 @@ const incompatibilities = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    
     let currentPrecinctStats = { ara: {}, ca: {} };
     window.precinctLogs = []; 
     let isCAMode = false;
@@ -23,7 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateFooter(isCA) {
         const footerNote = document.querySelector('.footer-note');
         if (footerNote) {
-            footerNote.innerHTML = isCA ? `Target: 1.5 Tags/hr & 1 MBBT/day | v${APP_VERSION}` : `Target: 81% (0.81) | v${APP_VERSION}`;
+            if (isCA) {
+                footerNote.innerHTML = `Target: 1.5 Tags/hr & 1 MBBT/day | You can do it!!! | v${APP_VERSION}`;
+            } else {
+                footerNote.innerHTML = `Target: 81% (0.81) | You can do it!!! | v${APP_VERSION}`;
+            }
         }
     }
     updateFooter(false);
@@ -39,8 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.cookie = `theme=${theme}; path=/; max-age=31536000; SameSite=Strict`;
         toggleBtn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
     };
+
     applyTheme(localStorage.getItem('theme') || 'dark');
-    toggleBtn.addEventListener('click', () => applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+    toggleBtn.addEventListener('click', () => {
+        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        applyTheme(theme);
+    });
 
     function showToast(message) {
         const toast = document.getElementById('toast');
@@ -50,13 +60,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'F12') { e.preventDefault(); window.location.href = '/logout'; }
+        if (e.key === 'F12') {
+            e.preventDefault(); 
+            window.location.href = '/logout'; 
+        }
     });
 
     const secretCodeInput = document.getElementById('secretCodeInput');
     if (secretCodeInput) {
         secretCodeInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); document.getElementById('authSubmitBtn').click(); }
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('authSubmitBtn').click();
+            }
         });
     }
 
@@ -80,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const grid = document.getElementById('calendarGrid');
         grid.innerHTML = '';
         grid.className = 'calendar-body'; 
+
         const year = currentCalViewDate.getFullYear();
         const month = currentCalViewDate.getMonth();
         document.getElementById('calMonthYear').textContent = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -109,13 +126,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     empty.className = 'calendar-day empty';
                     currentWeekRow.appendChild(empty);
                 }
+                
                 const refDate = new Date(year, month, currentDay - 1); 
+                
                 currentWeekRow.onclick = () => {
                     selectedWeek = getStartOfWeek(refDate);
                     updateWeekUI();
                     document.getElementById('calendarModal').style.display = 'none';
                 };
+                
                 grid.appendChild(currentWeekRow);
+                
                 currentWeekRow = document.createElement('div');
                 currentWeekRow.className = 'calendar-row';
             }
@@ -133,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const liveClockDisplay = document.createElement('div');
         liveClockDisplay.style.cssText = 'font-size: 13px; color: var(--label); margin-top: 12px; font-weight: bold; letter-spacing: 0.5px;';
         dashboardHeader.appendChild(liveClockDisplay);
+
         function tickClock() {
             const now = new Date();
             const dateString = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
@@ -168,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function populateAdminDropdown(action) {
         adminAgentSelect.innerHTML = '<option value="" disabled selected>-- Choose Agent --</option>';
         let team = [];
+        
         if (action === 'ARA_OVERRIDE') {
             team = araTeam;
         } else if (action === 'CA_OVERRIDE') {
@@ -175,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (action === 'REMOVE_AGENT') {
             team = [...new Set([...araTeam, ...caTeam, "Paolo"])].sort();
         }
+
         team.forEach(agent => {
             const opt = document.createElement('option');
             opt.value = agent;
@@ -243,6 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Array.from(dropdown.options).forEach(opt => {
                 const targetTag = opt.dataset.tag;
                 if (targetTag === "NONE") return;
+
                 const isSelectedElsewhere = selectedTags.includes(targetTag) && currentSelection !== targetTag;
                 let isConflicting = false;
                 selectedTags.forEach(activeTag => {
@@ -252,9 +277,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 });
+
                 opt.disabled = isSelectedElsewhere || isConflicting;
             });
         });
+
         document.getElementById('calculatedTotalDisplay').textContent = `Calculated Minutes: ${total}`;
     }
     serviceSelects.forEach(s => s.onchange = updateCalc);
@@ -266,7 +293,9 @@ document.addEventListener('DOMContentLoaded', () => {
         audit.innerHTML = '';
         
         let filteredLogs = window.precinctLogs || [];
-        if (filterVal !== 'ALL') filteredLogs = filteredLogs.filter(l => l.type === filterVal);
+        if (filterVal !== 'ALL') {
+            filteredLogs = filteredLogs.filter(l => l.type === filterVal);
+        }
 
         filteredLogs.sort((a,b) => new Date(b.time || 0) - new Date(a.time || 0)).forEach(l => {
             let timeFormatted = "--";
@@ -281,7 +310,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const adminAuditFilter = document.getElementById('adminAuditFilter');
-    if (adminAuditFilter) adminAuditFilter.addEventListener('change', renderAuditLog);
+    if (adminAuditFilter) {
+        adminAuditFilter.addEventListener('change', renderAuditLog);
+    }
 
     async function updateWeekUI() {
         const weekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -481,6 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             const actionVal = document.getElementById('actionSelect').value;
+            
             if (actionVal === 'GOAL') {
                 const newHoursInput = parseFloat(document.getElementById('hoursInput').value);
                 if(isNaN(newHoursInput)) return alert("Please enter valid hours.");
@@ -493,13 +525,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 mins = Math.round((newHoursInput * 60) * 0.81);
                 dbName = `${agent}|GOAL`;
-            } else if (actionVal === 'OPEN_BOX') {
+            } 
+            else if (actionVal === 'OPEN_BOX') {
                 const lpn = document.getElementById('lpnInput').value.trim();
                 if (!lpn) return alert("Please enter the Last 4 of the LPN.");
-                mins = 0; // Open Box doesn't give utilization minutes
+                mins = 0; 
                 dbName = `${agent}|OPEN_BOX|LPN:${lpn}`;
-                document.getElementById('lpnInput').value = '';
-            } else {
+            } 
+            else {
                 let totalMins = 0;
                 const tags = [];
                 serviceSelects.forEach(s => { 
@@ -509,7 +542,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 mins = totalMins;
                 dbName = `${agent}|PROGRESS|WO:${document.getElementById('woInput').value}|${tags.join('+')}`;
-                document.getElementById('woInput').value = ''; 
             }
         }
 
@@ -528,6 +560,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isCAMode && caActionSelect.value === 'CA_PROGRESS') {
                 document.getElementById('caTagsInput').value = '';
                 document.getElementById('caMbbtInput').value = '';
+            } else if (!isCAMode) {
+                if (document.getElementById('actionSelect').value === 'PROGRESS') document.getElementById('woInput').value = '';
+                if (document.getElementById('actionSelect').value === 'OPEN_BOX') document.getElementById('lpnInput').value = '';
             }
 
             if (isCAMode) {
