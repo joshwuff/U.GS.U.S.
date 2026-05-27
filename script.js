@@ -1,9 +1,9 @@
-const APP_VERSION = "6.5";
+const APP_VERSION = "6.6";
 
-// --- REPLACE WITH YOUR ACTUAL KEYS ---
+// --- REPLACE THESE WITH YOUR ACTUAL SUPABASE CREDENTIALS ---
 const _supabase = supabase.createClient(
-    'https://yxeozqztofvpyadxveyr.supabase.co',
-    'sb_publishable_3WRcMc4zjv-N-9oZry-SbA_MmRRKv1b'
+    'YOUR_SUPABASE_URL', 
+    'YOUR_SUPABASE_KEY'
 );
 
 const incompatibilities = {
@@ -16,25 +16,18 @@ const incompatibilities = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    
     let currentPrecinctStats = { ara: {}, ca: {} };
     window.precinctLogs = []; 
     let isCAMode = false;
 
-    // --- 0. DYNAMIC MOTIVATIONAL FOOTER ---
     function updateFooter(isCA) {
         const footerNote = document.querySelector('.footer-note');
         if (footerNote) {
-            if (isCA) {
-                footerNote.innerHTML = `Target: 1.5 Tags/hr & 1 MBBT/day | You can do it!!! | v${APP_VERSION}`;
-            } else {
-                footerNote.innerHTML = `Target: 81% (0.81) | You can do it!!! | v${APP_VERSION}`;
-            }
+            footerNote.innerHTML = isCA ? `Target: 1.5 Tags/hr & 1 MBBT/day | v${APP_VERSION}` : `Target: 81% (0.81) | v${APP_VERSION}`;
         }
     }
     updateFooter(false);
 
-    // --- 1. THEME ENGINE ---
     const toggleBtn = document.createElement('button');
     toggleBtn.className = 'theme-toggle-btn';
     toggleBtn.innerHTML = '🌙';
@@ -46,13 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.cookie = `theme=${theme}; path=/; max-age=31536000; SameSite=Strict`;
         toggleBtn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
     };
-
     applyTheme(localStorage.getItem('theme') || 'dark');
-
-    toggleBtn.addEventListener('click', () => {
-        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        applyTheme(theme);
-    });
+    toggleBtn.addEventListener('click', () => applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
 
     function showToast(message) {
         const toast = document.getElementById('toast');
@@ -62,23 +50,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'F12') {
-            e.preventDefault(); 
-            window.location.href = '/logout'; 
-        }
+        if (e.key === 'F12') { e.preventDefault(); window.location.href = '/logout'; }
     });
 
     const secretCodeInput = document.getElementById('secretCodeInput');
     if (secretCodeInput) {
         secretCodeInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                document.getElementById('authSubmitBtn').click();
-            }
+            if (e.key === 'Enter') { e.preventDefault(); document.getElementById('authSubmitBtn').click(); }
         });
     }
 
-    // --- 2. DATE & CALENDAR LOGIC ---
     function getStartOfWeek(d) {
         const date = new Date(d);
         const day = date.getDay(); 
@@ -99,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const grid = document.getElementById('calendarGrid');
         grid.innerHTML = '';
         grid.className = 'calendar-body'; 
-
         const year = currentCalViewDate.getFullYear();
         const month = currentCalViewDate.getMonth();
         document.getElementById('calMonthYear').textContent = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -129,17 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     empty.className = 'calendar-day empty';
                     currentWeekRow.appendChild(empty);
                 }
-                
                 const refDate = new Date(year, month, currentDay - 1); 
-                
                 currentWeekRow.onclick = () => {
                     selectedWeek = getStartOfWeek(refDate);
                     updateWeekUI();
                     document.getElementById('calendarModal').style.display = 'none';
                 };
-                
                 grid.appendChild(currentWeekRow);
-                
                 currentWeekRow = document.createElement('div');
                 currentWeekRow.className = 'calendar-row';
             }
@@ -152,13 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('calNextMonth').onclick = () => { currentCalViewDate.setMonth(currentCalViewDate.getMonth() + 1); renderCalendar(); };
     document.getElementById('calCancelBtn').onclick = () => document.getElementById('calendarModal').style.display = 'none';
 
-    // --- 2.5 LIVE UPDATING CLOCK ---
     const dashboardHeader = document.querySelector('.dashboard-header');
     if (dashboardHeader) {
         const liveClockDisplay = document.createElement('div');
         liveClockDisplay.style.cssText = 'font-size: 13px; color: var(--label); margin-top: 12px; font-weight: bold; letter-spacing: 0.5px;';
         dashboardHeader.appendChild(liveClockDisplay);
-
         function tickClock() {
             const now = new Date();
             const dateString = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
@@ -169,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
         tickClock(); 
     }
 
-    // --- 3. UI TOGGLE, DYNAMIC DROPDOWNS & CALC LOGIC ---
     const btnARA = document.getElementById('btnARA');
     const btnCA = document.getElementById('btnCA');
     const araWrapper = document.getElementById('araInputsWrapper');
@@ -195,10 +168,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function populateAdminDropdown(action) {
         adminAgentSelect.innerHTML = '<option value="" disabled selected>-- Choose Agent --</option>';
         let team = [];
-        if (action === 'ARA_OVERRIDE') team = araTeam;
-        else if (action === 'CA_OVERRIDE') team = caTeam;
-        else team = [...new Set([...araTeam, ...caTeam, "Paolo"])].sort(); // Included Paolo just in case for removal
-
+        if (action === 'ARA_OVERRIDE') {
+            team = araTeam;
+        } else if (action === 'CA_OVERRIDE') {
+            team = caTeam;
+        } else if (action === 'REMOVE_AGENT') {
+            team = [...new Set([...araTeam, ...caTeam, "Paolo"])].sort();
+        }
         team.forEach(agent => {
             const opt = document.createElement('option');
             opt.value = agent;
@@ -213,7 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCA.classList.remove('active');
         araWrapper.style.display = 'block';
         caWrapper.style.display = 'none';
-        cheatsheet.style.display = document.getElementById('actionSelect').value === 'GOAL' ? 'none' : 'block';
+        const val = document.getElementById('actionSelect').value;
+        cheatsheet.style.display = val === 'PROGRESS' ? 'block' : 'none';
         populateDropdown();
         updateFooter(false);
         updateWeekUI(); 
@@ -236,19 +213,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const actionSelect = document.getElementById('actionSelect');
     actionSelect.onchange = () => {
-        const isGoal = actionSelect.value === 'GOAL';
-        document.getElementById('goalInputsWrapper').style.display = isGoal ? 'block' : 'none';
-        document.getElementById('progressInputsWrapper').style.display = isGoal ? 'none' : 'block';
-        if(!isCAMode) cheatsheet.style.display = isGoal ? 'none' : 'block';
+        const val = actionSelect.value;
+        document.getElementById('goalInputsWrapper').style.display = val === 'GOAL' ? 'block' : 'none';
+        document.getElementById('progressInputsWrapper').style.display = val === 'PROGRESS' ? 'block' : 'none';
+        document.getElementById('openBoxInputsWrapper').style.display = val === 'OPEN_BOX' ? 'block' : 'none';
+        if(!isCAMode) cheatsheet.style.display = val === 'PROGRESS' ? 'block' : 'none';
     };
 
     const caActionSelect = document.getElementById('caActionSelect');
-    const caGoalInputsWrapper = document.getElementById('caGoalInputsWrapper');
-    const caProgressInputsWrapper = document.getElementById('caProgressInputsWrapper');
     caActionSelect.onchange = () => {
         const isGoal = caActionSelect.value === 'CA_GOAL';
-        caGoalInputsWrapper.style.display = isGoal ? 'block' : 'none';
-        caProgressInputsWrapper.style.display = isGoal ? 'none' : 'block';
+        document.getElementById('caGoalInputsWrapper').style.display = isGoal ? 'block' : 'none';
+        document.getElementById('caProgressInputsWrapper').style.display = isGoal ? 'none' : 'block';
     };
 
     const serviceSelects = document.querySelectorAll('.service-select');
@@ -264,11 +240,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         serviceSelects.forEach(dropdown => {
             const currentSelection = dropdown.options[dropdown.selectedIndex].dataset.tag;
-
             Array.from(dropdown.options).forEach(opt => {
                 const targetTag = opt.dataset.tag;
                 if (targetTag === "NONE") return;
-
                 const isSelectedElsewhere = selectedTags.includes(targetTag) && currentSelection !== targetTag;
                 let isConflicting = false;
                 selectedTags.forEach(activeTag => {
@@ -278,16 +252,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 });
-
                 opt.disabled = isSelectedElsewhere || isConflicting;
             });
         });
-
         document.getElementById('calculatedTotalDisplay').textContent = `Calculated Minutes: ${total}`;
     }
     serviceSelects.forEach(s => s.onchange = updateCalc);
 
-    // --- 4. DATA SYNC & DASHBOARD ---
     function renderAuditLog() {
         const audit = document.getElementById('auditLogBody');
         const filterEl = document.getElementById('adminAuditFilter');
@@ -323,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchDashboardData(weekStr) {
         const { data, error } = await _supabase.from('utilization_logs').select('*').eq('week_of', weekStr).order('created_at', { ascending: true });
-        if (error) return console.error(error);
+        if (error) return console.error("Supabase Error:", error);
 
         const araStats = {};
         const caStats = {};
@@ -342,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 logs.push({ agent: name, wo: 'CA Override', tag: `H:${h||'-'} T:${t||'-'} M:${m||'-'}`, min: '-', time: log.created_at, type: 'OVERRIDE' });
                 
             } else if (log.agent_name.includes('ARA_OVERRIDE')) {
-                if(!araStats[name]) araStats[name] = { g: 0, p: 0, count: 0 };
+                if(!araStats[name]) araStats[name] = { g: 0, p: 0, openBox: 0 };
                 const t = parts[2], p = parts[3];
                 if (t !== "") araStats[name].g = parseFloat(t);
                 if (p !== "") araStats[name].p = parseFloat(p);
@@ -366,17 +337,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (tagStr.length === 0) tagStr.push("Tags: 0 | MBBT: 0"); 
                 logs.push({ agent: name, wo: 'CA Progress', tag: tagStr.join(' | '), min: '-', time: log.created_at, type: 'PROGRESS' });
                 
+            } else if (log.agent_name.includes('CA_LOG')) {
+                if(!caStats[name]) caStats[name] = { hours: 0, tags: 0, mbbt: 0 };
+                caStats[name].hours += parseFloat(parts[2]);
+                caStats[name].tags += parseInt(parts[3]);
+                caStats[name].mbbt += parseInt(parts[4]);
+                logs.push({ agent: name, wo: 'CA Data (Legacy)', tag: `H:${parts[2]} T:${parts[3]} M:${parts[4]}`, min: '-', time: log.created_at, type: 'PROGRESS' });
+            
             } else {
-                if(!araStats[name]) araStats[name] = { g: 0, p: 0, count: 0 };
+                if(!araStats[name]) araStats[name] = { g: 0, p: 0, openBox: 0 };
                 
                 if(log.agent_name.includes('GOAL')) {
                     araStats[name].g = log.target_minutes;
                     logs.push({ agent: name, wo: 'ARA Goal', tag: `Target Mins: ${log.target_minutes}`, min: '-', time: log.created_at, type: 'GOAL' });
                 }
-                if(log.agent_name.includes('PROGRESS')) {
+                else if(log.agent_name.includes('OPEN_BOX')) {
+                    araStats[name].openBox++;
+                    logs.push({ agent: name, wo: parts[2] || '??', tag: 'Open Box', min: '-', time: log.created_at, type: 'OPEN_BOX' });
+                }
+                else if(log.agent_name.includes('PROGRESS')) {
                     araStats[name].p += log.target_minutes;
-                    araStats[name].count += (parts[3] ? parts[3].split('+').length : 0);
                     logs.push({ agent: name, wo: parts[2] || '??', tag: parts[3] || '??', min: log.target_minutes, time: log.created_at, type: 'PROGRESS' });
+                }
+                else if(log.agent_name.includes('ADMIN_OVERRIDE')) {
+                    const action = parts[1];
+                    if (action === 'GOAL') araStats[name].g = log.target_minutes;
+                    if (action === 'PROGRESS') araStats[name].p = log.target_minutes;
+                    logs.push({ agent: name, wo: 'ARA Override (Legacy)', tag: `Action: ${action}`, min: log.target_minutes, time: log.created_at, type: 'OVERRIDE' });
                 }
             }
         });
@@ -388,12 +375,12 @@ document.addEventListener('DOMContentLoaded', () => {
         list.innerHTML = '';
         
         if (!isCAMode) {
-            const araAgents = Object.keys(araStats).filter(a => araStats[a].g > 0 || araStats[a].p > 0 || araStats[a].count > 0).sort();
+            const araAgents = Object.keys(araStats).filter(a => araStats[a].g > 0 || araStats[a].p > 0 || araStats[a].openBox > 0).sort();
             if (araAgents.length === 0) {
                 list.innerHTML = '<li class="agent-item" style="text-align:center; color:var(--label);">No active ARA data for this week.</li>';
             } else {
                 araAgents.forEach(agent => {
-                    const { g, p, count } = araStats[agent];
+                    const { g, p, openBox } = araStats[agent];
                     const per = g > 0 ? Math.round((p/g)*100) : 0;
                     const li = document.createElement('li');
                     li.className = 'agent-item';
@@ -408,8 +395,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div style="background:var(--accent); width:${Math.min(per, 100)}%; height:100%; transition: width 0.4s ease;"></div>
                             </div>
                             <div style="display:flex; justify-content:space-between; margin-top:8px; align-items: center;">
-                                <span style="font-size: 13px; color: var(--label);">Total Tags Logged</span>
-                                <span style="font-size: 13px; font-weight: bold; color: #4CAF50;">${count || 0}</span>
+                                <span style="font-size: 13px; color: var(--label);">Open Box Tags</span>
+                                <span style="font-size: 13px; font-weight: bold; color: #4CAF50;">${openBox || 0}</span>
                             </div>
                         </div>
                     `;
@@ -470,22 +457,48 @@ document.addEventListener('DOMContentLoaded', () => {
             if (caActionSelect.value === 'CA_GOAL') {
                 const newHours = parseFloat(document.getElementById('caHoursInput').value);
                 if(isNaN(newHours)) return alert("Please enter valid hours.");
+                
+                const oldHours = currentPrecinctStats?.ca[agent]?.hours || 0;
+                if (oldHours > 0 && oldHours !== newHours) {
+                    if (!confirm(`Are you sure you want to override your target from ${oldHours} hours to ${newHours} hours?`)) return;
+                }
+                
                 dbName = `${agent}|CA_GOAL|${newHours}`;
             } else {
                 const tagsStr = document.getElementById('caTagsInput').value.trim();
                 const mbbtStr = document.getElementById('caMbbtInput').value.trim();
+                
                 if (tagsStr === "" && mbbtStr === "") return alert("Please enter a value for either Tags or Memberships.");
+                
                 const tags = tagsStr !== "" ? parseInt(tagsStr) : 0;
                 const mbbt = mbbtStr !== "" ? parseInt(mbbtStr) : 0;
-                if ((tagsStr !== "" && isNaN(tags)) || (mbbtStr !== "" && isNaN(mbbt))) return alert("Invalid numbers.");
+                
+                if ((tagsStr !== "" && isNaN(tags)) || (mbbtStr !== "" && isNaN(mbbt))) {
+                    return alert("Please ensure the fields you entered contain valid numbers.");
+                }
+
                 dbName = `${agent}|CA_PROGRESS|${tags}|${mbbt}`;
             }
         } else {
-            if (actionSelect.value === 'GOAL') {
+            const actionVal = document.getElementById('actionSelect').value;
+            if (actionVal === 'GOAL') {
                 const newHoursInput = parseFloat(document.getElementById('hoursInput').value);
                 if(isNaN(newHoursInput)) return alert("Please enter valid hours.");
+                
+                const oldMins = currentPrecinctStats?.ara[agent]?.g || 0;
+                const oldHours = oldMins > 0 ? parseFloat((oldMins / 0.81 / 60).toFixed(2)) : 0;
+                if (oldHours > 0 && oldHours !== newHoursInput) {
+                    if (!confirm(`Are you sure you want to override your target from ${oldHours} hours to ${newHoursInput} hours?`)) return;
+                }
+
                 mins = Math.round((newHoursInput * 60) * 0.81);
                 dbName = `${agent}|GOAL`;
+            } else if (actionVal === 'OPEN_BOX') {
+                const lpn = document.getElementById('lpnInput').value.trim();
+                if (!lpn) return alert("Please enter the Last 4 of the LPN.");
+                mins = 0; // Open Box doesn't give utilization minutes
+                dbName = `${agent}|OPEN_BOX|LPN:${lpn}`;
+                document.getElementById('lpnInput').value = '';
             } else {
                 let totalMins = 0;
                 const tags = [];
@@ -511,11 +524,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!error) { 
             updateWeekUI(); 
             document.getElementById('robotCheck').checked = false;
+            
             if (isCAMode && caActionSelect.value === 'CA_PROGRESS') {
                 document.getElementById('caTagsInput').value = '';
                 document.getElementById('caMbbtInput').value = '';
             }
-            showToast("Logged!");
+
+            if (isCAMode) {
+                showToast(caActionSelect.value === 'CA_GOAL' ? "CA Hours Logged!" : "CA Stats Logged!");
+            } else {
+                const actionVal = document.getElementById('actionSelect').value;
+                if (actionVal === 'GOAL') showToast("Target Hours Set!");
+                else if (actionVal === 'OPEN_BOX') showToast("Open Box Logged!");
+                else showToast("Minutes Logged!");
+            }
         } else {
             alert("Error logging data: " + error.message);
         }
@@ -580,11 +602,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (action === 'REMOVE_AGENT') {
             if(!confirm(`WARNING: Are you sure you want to permanently delete ALL data for ${agent} for the week of ${currentWeekStr}?`)) return;
+            
             const { error } = await _supabase.from('utilization_logs')
                 .delete()
                 .eq('week_of', currentWeekStr)
                 .like('agent_name', `${agent}|%`); 
-            if(!error) { showToast(`${agent} removed from week!`); updateWeekUI(); }
+                
+            if(!error) { 
+                showToast(`${agent} removed from week!`); 
+                updateWeekUI(); 
+            }
             return; 
         }
 
@@ -595,19 +622,44 @@ document.addEventListener('DOMContentLoaded', () => {
             const hoursStr = document.getElementById('adminCaHours').value.trim();
             const tagsStr = document.getElementById('adminCaTags').value.trim();
             const mbbtStr = document.getElementById('adminCaMbbt').value.trim();
+            
             if(hoursStr === "" && tagsStr === "" && mbbtStr === "") return alert("Please enter at least one value to update.");
             
             const hours = hoursStr !== "" ? parseFloat(hoursStr) : "";
             const tags = tagsStr !== "" ? parseInt(tagsStr) : "";
             const mbbt = mbbtStr !== "" ? parseInt(mbbtStr) : "";
+            
+            if((hoursStr !== "" && isNaN(hours)) || (tagsStr !== "" && isNaN(tags)) || (mbbtStr !== "" && isNaN(mbbt))) {
+                return alert("Please ensure the fields you entered contain valid numbers.");
+            }
+
+            if (hoursStr !== "") {
+                const oldHours = currentPrecinctStats?.ca[agent]?.hours || 0;
+                if (oldHours > 0 && oldHours !== hours) {
+                    if (!confirm(`Are you sure you want to override the target from ${oldHours} hours to ${hours} hours?`)) return;
+                }
+            }
             dbName = `${agent}|CA_OVERRIDE|${hours}|${tags}|${mbbt}`;
+            
         } else if (action === 'ARA_OVERRIDE') {
             const targetStr = document.getElementById('adminAraTarget').value.trim();
             const progressStr = document.getElementById('adminAraProgress').value.trim();
+            
             if(targetStr === "" && progressStr === "") return alert("Please enter at least one value to update.");
             
             const target = targetStr !== "" ? parseInt(targetStr) : "";
             const progress = progressStr !== "" ? parseInt(progressStr) : "";
+            
+            if((targetStr !== "" && isNaN(target)) || (progressStr !== "" && isNaN(progress))) {
+                return alert("Please ensure the fields you entered contain valid numbers.");
+            }
+
+            if (targetStr !== "") {
+                const oldMins = currentPrecinctStats?.ara[agent]?.g || 0;
+                if (oldMins > 0 && oldMins !== target) {
+                    if (!confirm(`Are you sure you want to override the target from ${oldMins} mins to ${target} mins?`)) return;
+                }
+            }
             dbName = `${agent}|ARA_OVERRIDE|${target}|${progress}`;
         }
         
@@ -630,11 +682,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('resetDataBtn').onclick = async () => {
         const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        if(!confirm(`CRITICAL WARNING: Are you sure you want to completely wipe all data for the week of ${currentWeekStr}?`)) return;
+        if(!confirm(`CRITICAL WARNING: Are you sure you want to completely wipe all data for the week of ${currentWeekStr}? This cannot be undone.`)) return;
         
         const { error } = await _supabase.from('utilization_logs').delete().eq('week_of', currentWeekStr);
-        if(!error) { alert("Week wiped successfully."); updateWeekUI(); }
+        if(!error) { 
+            alert("Week wiped successfully."); 
+            updateWeekUI(); 
+        }
     };
 
+    // Initialize App
     updateWeekUI();
 });
