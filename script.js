@@ -1,4 +1,4 @@
-const APP_VERSION = "6.6";
+const APP_VERSION = "6.7";
 
 // HARDCODED CREDENTIALS - DO NOT CHANGE
 const _supabase = supabase.createClient(
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (action === 'CA_OVERRIDE') {
             team = caTeam;
         } else if (action === 'REMOVE_AGENT') {
-            team = [...new Set([...araTeam, ...caTeam, "Paolo"])].sort();
+            team = [...new Set([...araTeam, ...caTeam])].sort();
         }
 
         team.forEach(agent => {
@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div style="display:flex; justify-content:space-between; margin-top:8px; align-items: center;">
                                 <span style="font-size: 13px; color: var(--label);">Open Box Tags</span>
-                                <span style="font-size: 13px; font-weight: bold; color: #4CAF50;">${openBox || 0}</span>
+                                <span style="font-size: 13px; font-weight: bold; color: var(--accent);">${openBox || 0}</span>
                             </div>
                         </div>
                     `;
