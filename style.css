@@ -17,7 +17,7 @@ body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif
 .cheatsheet-container { max-width: 350px; flex: 1; height: fit-content; }
 .dashboard { max-width: 600px; margin-top: 20px; }
 
-/* --- NEW: ROLE TOGGLE --- */
+/* --- ROLE TOGGLE --- */
 .role-toggle-container { display: flex; width: 90%; margin: 0 auto 20px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
 .role-btn { flex: 1; padding: 12px; border: none; background: var(--bg); color: var(--text); font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 15px;}
 .role-btn.active { background: var(--accent); color: white; }
@@ -90,8 +90,9 @@ input, select { width: 100%; padding: 10px; background: var(--bg); color: var(--
 .audit-log-container { overflow-x: auto; max-height: 350px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); }
 
 /* --- CHEAT SHEET STYLES --- */
-.cheatsheet-grid { display: grid; grid-template-columns: 1fr auto; row-gap: 12px; margin-top: 20px; text-align: left; font-size: 15px; align-items: center; }
-.cs-tag { font-weight: bold; color: var(--text); }
+.cheatsheet-grid { display: grid; grid-template-columns: 1fr auto; row-gap: 12px; margin-top: 20px; text-align: left; align-items: center; }
+.cs-tag { font-weight: bold; color: var(--text); font-size: 14px; }
+.cs-sub { font-size: 11px; color: var(--label); font-weight: normal; margin-left: 5px; }
 .cs-min { color: var(--accent); font-weight: bold; background: var(--bg); padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border); text-align: right; }
 
 /* --- LOGOUT BUTTON --- */
