@@ -1,20 +1,26 @@
-const APP_VERSION = "6.9";
+const APP_VERSION = "6.10";
 
-// HARDCODED CREDENTIALS - DO NOT CHANGE
+// --- 1. REPLACE THESE WITH YOUR ACTUAL SUPABASE CREDENTIALS ---
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
     'sb_publishable_3WRcMc4zjv-N-9oZry-SbA_MmRRKv1b'
 );
 
+// --- FULL GEEK SQUAD SOP INCOMPATIBILITY MAP ---
 const incompatibilities = {
-    'GSOI': ['GSOSR'],
-    'GSOSR': ['GSOI'],
+    'GSDB': ['GSOSR', 'GSOI', 'GSWUR'],
+    'GSDI': ['GSWUR'],
+    'GSOI': ['GSOSR', 'GSWUR', 'GSDB'],
+    'GSOSR': ['GSOI', 'GSWUR', 'GSDB'],
     'GSSW': ['GSSWR'],
-    'GSSWR': ['GSSW']
+    'GSSWR': ['GSSW'],
+    'GSWUR': ['GSOI', 'GSOSR', 'GSDI', 'GSDB']
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    console.log("U.GS.U.S. System v6.10 Loaded Successfully");
+
     let currentPrecinctStats = { ara: {}, ca: {} };
     window.precinctLogs = []; 
     let isCAMode = false;
@@ -564,4 +570,166 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (isCAMode) {
-                showToast(caAction
+                showToast(caActionSelect.value === 'CA_GOAL' ? "CA Hours Logged!" : "CA Stats Logged!");
+            } else {
+                const actionVal = document.getElementById('actionSelect').value;
+                if (actionVal === 'GOAL') showToast("Target Hours Set!");
+                else if (actionVal === 'OPEN_BOX') showToast("Open Box Logged!");
+                else showToast("Minutes Logged!");
+            }
+        } else {
+            alert("Error logging data: " + error.message);
+        }
+    };
+
+    // --- 5. ADMIN LOGIC (5-Click Easter Egg) ---
+    let logoClicks = 0;
+    let logoTimer;
+    document.getElementById('secretLogo').onclick = () => {
+        logoClicks++;
+        clearTimeout(logoTimer);
+        logoTimer = setTimeout(() => logoClicks = 0, 2000); 
+        if (logoClicks >= 5) {
+            document.getElementById('passwordModal').style.display = 'flex';
+            logoClicks = 0; 
+        }
+    };
+    
+    document.getElementById('authSubmitBtn').onclick = async () => {
+        const { data } = await _supabase.from('precinct_secrets').select('*').eq('key_value', document.getElementById('secretCodeInput').value);
+        if(data?.length) { 
+            document.getElementById('passwordModal').style.display='none'; 
+            document.getElementById('adminPanel').style.display='block'; 
+            document.getElementById('secretCodeInput').value = ''; 
+        } else {
+            alert("Access Denied.");
+        }
+    };
+    document.getElementById('authCancelBtn').onclick = () => {
+        document.getElementById('passwordModal').style.display = 'none';
+        document.getElementById('secretCodeInput').value = '';
+    };
+    
+    document.getElementById('closeAdminBtn').onclick = () => document.getElementById('adminPanel').style.display = 'none';
+
+    const adminActionSelect = document.getElementById('adminActionSelect');
+    const adminAraInputs = document.getElementById('adminAraInputs');
+    const adminCaInputs = document.getElementById('adminCaInputs');
+    const adminOverrideBtn = document.getElementById('adminOverrideBtn');
+
+    adminActionSelect.onchange = (e) => {
+        const val = e.target.value;
+        adminAraInputs.style.display = val === 'ARA_OVERRIDE' ? 'flex' : 'none';
+        adminCaInputs.style.display = val === 'CA_OVERRIDE' ? 'flex' : 'none';
+        
+        if (val === 'REMOVE_AGENT') {
+            adminOverrideBtn.textContent = 'Remove Agent Data';
+            adminOverrideBtn.style.background = '#d32f2f'; 
+        } else {
+            adminOverrideBtn.textContent = 'Force Update';
+            adminOverrideBtn.style.background = 'var(--accent)';
+        }
+        populateAdminDropdown(val);
+    };
+
+    document.getElementById('adminOverrideBtn').onclick = async () => {
+        const agent = document.getElementById('adminAgentSelect').value;
+        if (!agent) return alert("Please select an agent first.");
+
+        const action = adminActionSelect.value;
+        const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+        if (action === 'REMOVE_AGENT') {
+            if(!confirm(`WARNING: Are you sure you want to permanently delete ALL data for ${agent} for the week of ${currentWeekStr}?`)) return;
+            
+            const { error } = await _supabase.from('utilization_logs')
+                .delete()
+                .eq('week_of', currentWeekStr)
+                .like('agent_name', `${agent}|%`); 
+                
+            if(!error) { 
+                showToast(`${agent} removed from week!`); 
+                updateWeekUI(); 
+            }
+            return; 
+        }
+
+        let dbName = "";
+        let mins = 0;
+
+        if (action === 'CA_OVERRIDE') {
+            const hoursStr = document.getElementById('adminCaHours').value.trim();
+            const tagsStr = document.getElementById('adminCaTags').value.trim();
+            const mbbtStr = document.getElementById('adminCaMbbt').value.trim();
+            
+            if(hoursStr === "" && tagsStr === "" && mbbtStr === "") return alert("Please enter at least one value to update.");
+            
+            const hours = hoursStr !== "" ? parseFloat(hoursStr) : "";
+            const tags = tagsStr !== "" ? parseInt(tagsStr) : "";
+            const mbbt = mbbtStr !== "" ? parseInt(mbbtStr) : "";
+            
+            if((hoursStr !== "" && isNaN(hours)) || (tagsStr !== "" && isNaN(tags)) || (mbbtStr !== "" && isNaN(mbbt))) {
+                return alert("Please ensure the fields you entered contain valid numbers.");
+            }
+
+            if (hoursStr !== "") {
+                const oldHours = currentPrecinctStats?.ca[agent]?.hours || 0;
+                if (oldHours > 0 && oldHours !== hours) {
+                    if (!confirm(`Are you sure you want to override the target from ${oldHours} hours to ${hours} hours?`)) return;
+                }
+            }
+            dbName = `${agent}|CA_OVERRIDE|${hours}|${tags}|${mbbt}`;
+            
+        } else if (action === 'ARA_OVERRIDE') {
+            const targetStr = document.getElementById('adminAraTarget').value.trim();
+            const progressStr = document.getElementById('adminAraProgress').value.trim();
+            
+            if(targetStr === "" && progressStr === "") return alert("Please enter at least one value to update.");
+            
+            const target = targetStr !== "" ? parseInt(targetStr) : "";
+            const progress = progressStr !== "" ? parseInt(progressStr) : "";
+            
+            if((targetStr !== "" && isNaN(target)) || (progressStr !== "" && isNaN(progress))) {
+                return alert("Please ensure the fields you entered contain valid numbers.");
+            }
+
+            if (targetStr !== "") {
+                const oldMins = currentPrecinctStats?.ara[agent]?.g || 0;
+                if (oldMins > 0 && oldMins !== target) {
+                    if (!confirm(`Are you sure you want to override the target from ${oldMins} mins to ${target} mins?`)) return;
+                }
+            }
+            dbName = `${agent}|ARA_OVERRIDE|${target}|${progress}`;
+        }
+        
+        const { error } = await _supabase.from('utilization_logs').insert([{ 
+            agent_name: dbName, 
+            target_minutes: mins, 
+            week_of: currentWeekStr
+        }]);
+        
+        if(!error) { 
+            showToast("Force Update Successful!"); 
+            document.getElementById('adminAraTarget').value = '';
+            document.getElementById('adminAraProgress').value = '';
+            document.getElementById('adminCaHours').value = '';
+            document.getElementById('adminCaTags').value = '';
+            document.getElementById('adminCaMbbt').value = '';
+            updateWeekUI(); 
+        }
+    };
+
+    document.getElementById('resetDataBtn').onclick = async () => {
+        const currentWeekStr = selectedWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        if(!confirm(`CRITICAL WARNING: Are you sure you want to completely wipe all data for the week of ${currentWeekStr}? This cannot be undone.`)) return;
+        
+        const { error } = await _supabase.from('utilization_logs').delete().eq('week_of', currentWeekStr);
+        if(!error) { 
+            alert("Week wiped successfully."); 
+            updateWeekUI(); 
+        }
+    };
+
+    // Initialize App
+    updateWeekUI();
+});
