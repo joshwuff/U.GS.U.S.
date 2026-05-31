@@ -1,6 +1,6 @@
-const APP_VERSION = "6.10";
+const APP_VERSION = "6.11";
 
-// --- 1. REPLACE THESE WITH YOUR ACTUAL SUPABASE CREDENTIALS ---
+// --- REPLACE THESE WITH YOUR ACTUAL SUPABASE CREDENTIALS ---
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
     'sb_publishable_3WRcMc4zjv-N-9oZry-SbA_MmRRKv1b'
@@ -19,7 +19,7 @@ const incompatibilities = {
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    console.log("U.GS.U.S. System v6.10 Loaded Successfully");
+    console.log("U.GS.U.S. System v6.11 Loaded Successfully");
 
     let currentPrecinctStats = { ara: {}, ca: {} };
     window.precinctLogs = []; 
