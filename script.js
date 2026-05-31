@@ -1,4 +1,4 @@
-const APP_VERSION = "6.7";
+const APP_VERSION = "6.8";
 
 // HARDCODED CREDENTIALS - DO NOT CHANGE
 const _supabase = supabase.createClient(
@@ -10,8 +10,8 @@ const incompatibilities = {
     'GSIR': ['GSOSR', 'GSWUR'],
     'GSOSR': ['GSIR', 'GSWUR'],
     'GSDI': ['GSWUR'],
-    'GSOI/GSPW': ['GSSW'],
-    'GSSW': ['GSOI/GSPW'],
+    'GSOI/GSPW': ['GSSW/GSSWR'],
+    'GSSW/GSSWR': ['GSOI/GSPW'],
     'GSWUR': ['GSIR', 'GSOSR', 'GSDI']
 };
 
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (action === 'CA_OVERRIDE') {
             team = caTeam;
         } else if (action === 'REMOVE_AGENT') {
-            team = [...new Set([...araTeam, ...caTeam])].sort();
+            team = [...new Set([...araTeam, ...caTeam, "Paolo"])].sort();
         }
 
         team.forEach(agent => {
