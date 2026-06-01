@@ -13,7 +13,6 @@
 </head>
 <body>
 
-    <!-- LOGOUT BUTTON -->
     <a href="/logout" class="logout-btn" title="Lock System">🔒</a>
 
     <img src="U.GS.U.S-logo.png" id="secretLogo" alt="U.GS.U.S. Logo" class="logo">
@@ -21,24 +20,19 @@
 
     <div class="main-layout">
         
-        <!-- MAIN CALCULATOR -->
         <div class="calculator-container">
             
-            <!-- ROLE TOGGLE -->
             <div class="role-toggle-container">
                 <button id="btnARA" class="role-btn active" autocomplete="off">ARA Mode</button>
                 <button id="btnCA" class="role-btn" autocomplete="off">CA Mode</button>
             </div>
 
-            <!-- DYNAMIC DROPDOWN -->
             <div class="input-group">
                 <label for="agentSelect" class="input-label">Select Agent</label>
                 <select id="agentSelect" autocomplete="off">
-                    <!-- Populated dynamically by script.js -->
-                </select>
+                    </select>
             </div>
 
-            <!-- ARA INPUTS -->
             <div id="araInputsWrapper">
                 <div class="input-group">
                     <label for="actionSelect" class="input-label">What are you doing?</label>
@@ -73,10 +67,9 @@
                                 <option value="49" data-tag="GSOSR">GSOSR - Operating System Repair (49m)</option>
                                 <option value="49" data-tag="GSIR">GSIR - iPhone Repair (49m)</option>
                                 <option value="25" data-tag="GSDI">GSDI - Diagnostics (25m)</option>
-                                <option value="12" data-tag="GSSW">GSSW - Software Install (12m)</option>
+                                <option value="12" data-tag="GSSW/GSSWR">GSSW/GSSWR - Software Install / Repair (12m)</option>
                                 <option value="20" data-tag="GSPW">GSPW - Password Reset (20m)</option>
                                 <option value="18" data-tag="GSHW">GSHW - Hardware Install (18m)</option>
-                                <option value="12" data-tag="GSSWR">GSSWR - Software Repair (12m)</option>
                                 <option value="4" data-tag="GSWUR">GSWUR - Whole Unit Replacement (4m)</option>
                             </select>
                             <select class="service-select" autocomplete="off">
@@ -86,10 +79,9 @@
                                 <option value="49" data-tag="GSOSR">GSOSR - Operating System Repair (49m)</option>
                                 <option value="49" data-tag="GSIR">GSIR - iPhone Repair (49m)</option>
                                 <option value="25" data-tag="GSDI">GSDI - Diagnostics (25m)</option>
-                                <option value="12" data-tag="GSSW">GSSW - Software Install (12m)</option>
+                                <option value="12" data-tag="GSSW/GSSWR">GSSW/GSSWR - Software Install / Repair (12m)</option>
                                 <option value="20" data-tag="GSPW">GSPW - Password Reset (20m)</option>
                                 <option value="18" data-tag="GSHW">GSHW - Hardware Install (18m)</option>
-                                <option value="12" data-tag="GSSWR">GSSWR - Software Repair (12m)</option>
                                 <option value="4" data-tag="GSWUR">GSWUR - Whole Unit Replacement (4m)</option>
                             </select>
                         </div>
@@ -101,10 +93,9 @@
                                 <option value="49" data-tag="GSOSR">GSOSR - Operating System Repair (49m)</option>
                                 <option value="49" data-tag="GSIR">GSIR - iPhone Repair (49m)</option>
                                 <option value="25" data-tag="GSDI">GSDI - Diagnostics (25m)</option>
-                                <option value="12" data-tag="GSSW">GSSW - Software Install (12m)</option>
+                                <option value="12" data-tag="GSSW/GSSWR">GSSW/GSSWR - Software Install / Repair (12m)</option>
                                 <option value="20" data-tag="GSPW">GSPW - Password Reset (20m)</option>
                                 <option value="18" data-tag="GSHW">GSHW - Hardware Install (18m)</option>
-                                <option value="12" data-tag="GSSWR">GSSWR - Software Repair (12m)</option>
                                 <option value="4" data-tag="GSWUR">GSWUR - Whole Unit Replacement (4m)</option>
                             </select>
                             <select class="service-select" autocomplete="off">
@@ -114,10 +105,9 @@
                                 <option value="49" data-tag="GSOSR">GSOSR - Operating System Repair (49m)</option>
                                 <option value="49" data-tag="GSIR">GSIR - iPhone Repair (49m)</option>
                                 <option value="25" data-tag="GSDI">GSDI - Diagnostics (25m)</option>
-                                <option value="12" data-tag="GSSW">GSSW - Software Install (12m)</option>
+                                <option value="12" data-tag="GSSW/GSSWR">GSSW/GSSWR - Software Install / Repair (12m)</option>
                                 <option value="20" data-tag="GSPW">GSPW - Password Reset (20m)</option>
                                 <option value="18" data-tag="GSHW">GSHW - Hardware Install (18m)</option>
-                                <option value="12" data-tag="GSSWR">GSSWR - Software Repair (12m)</option>
                                 <option value="4" data-tag="GSWUR">GSWUR - Whole Unit Replacement (4m)</option>
                             </select>
                         </div>
@@ -125,7 +115,6 @@
                     </div>
                 </div>
 
-                <!-- OPEN BOX INPUTS -->
                 <div id="openBoxInputsWrapper" style="display: none;">
                     <div class="wo-calc-container">
                         <div class="input-group" style="width: 100%;">
@@ -138,7 +127,6 @@
 
             </div>
 
-            <!-- CA INPUTS -->
             <div id="caInputsWrapper" style="display: none;">
                 <div class="input-group">
                     <label for="caActionSelect" class="input-label">What are you doing?</label>
@@ -167,7 +155,6 @@
                 </div>
             </div>
 
-            <!-- Authentic reCAPTCHA Block -->
             <div class="fake-recaptcha">
                 <div class="fake-recaptcha-left">
                     <input type="checkbox" id="robotCheck" autocomplete="off">
@@ -185,7 +172,6 @@
             <p id="resultOutput" class="result-output" style="margin-top:15px; font-style:italic; color:var(--label); font-size:14px;">Ready to sync...</p>
         </div>
 
-        <!-- CHEAT SHEET SIDE PANEL -->
         <div id="cheatsheetContainer" class="cheatsheet-container" style="display: none;">
             <h3 style="margin-top:0; color:var(--accent); border-bottom:2px solid var(--accent); padding-bottom:10px; text-align:center;">Service Grid</h3>
             <div class="cheatsheet-grid">
@@ -194,16 +180,14 @@
                 <span class="cs-tag">GSOSR <span class="cs-sub">(Operating System Repair)</span></span> <span class="cs-min">49m</span>
                 <span class="cs-tag">GSIR <span class="cs-sub">(iPhone Repair)</span></span> <span class="cs-min">49m</span>
                 <span class="cs-tag">GSDI <span class="cs-sub">(Diagnostics)</span></span> <span class="cs-min">25m</span>
-                <span class="cs-tag">GSSW <span class="cs-sub">(Software Install)</span></span> <span class="cs-min">12m</span>
+                <span class="cs-tag">GSSW / GSSWR <span class="cs-sub">(Software Install / Repair)</span></span> <span class="cs-min">12m</span>
                 <span class="cs-tag">GSPW <span class="cs-sub">(Password Reset)</span></span> <span class="cs-min">20m</span>
                 <span class="cs-tag">GSHW <span class="cs-sub">(Hardware Install)</span></span> <span class="cs-min">18m</span>
-                <span class="cs-tag">GSSWR <span class="cs-sub">(Software Repair)</span></span> <span class="cs-min">12m</span>
                 <span class="cs-tag">GSWUR <span class="cs-sub">(Whole Unit Replacement)</span></span> <span class="cs-min">4m</span>
             </div>
         </div>
     </div>
 
-    <!-- DASHBOARD -->
     <div class="dashboard">
         <div class="dashboard-header" style="text-align:center; border-bottom:2px solid var(--accent); padding-bottom:10px; margin-bottom:15px;">
             <h2 style="margin:0 0 10px 0;">Precinct Totals</h2>
@@ -220,7 +204,6 @@
         </ul>
     </div>
 
-    <!-- ADMIN PANEL -->
     <div id="adminPanel" class="admin-panel" style="display: none;">
         <span class="close-admin-btn" id="closeAdminBtn">✖</span>
         <h3 style="margin-top:0; color:#c62828; margin-bottom:20px;">🛡️ Precinct Admin Override</h3>
@@ -262,7 +245,6 @@
         <button id="resetDataBtn" class="admin-action-btn" style="background:#d32f2f; margin-top:20px;">Wipe Selected Week</button>
     </div>
 
-    <!-- CALENDAR MODAL -->
     <div id="calendarModal" class="modal-overlay">
         <div class="modal-content">
             <div class="calendar-header" style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; font-size:16px;">
@@ -278,7 +260,6 @@
         </div>
     </div>
 
-    <!-- ADMIN ACCESS MODAL -->
     <div id="passwordModal" class="modal-overlay">
         <div class="modal-content">
             <h3 style="margin-top:0;">ADMIN LOGIN</h3>
@@ -288,7 +269,6 @@
         </div>
     </div>
 
-    <!-- TOAST NOTIFICATION -->
     <div id="toast" class="toast">Data Logged!</div>
     <div class="footer-note" style="text-align:center; margin-bottom:30px;">Loading...</div>
     <script src="script.js"></script>
