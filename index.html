@@ -73,7 +73,7 @@
                                 <option value="49" data-tag="GSOSR">GSOSR - Operating System Repair (49m)</option>
                                 <option value="49" data-tag="GSIR">GSIR - iPhone Repair (49m)</option>
                                 <option value="25" data-tag="GSDI">GSDI - Diagnostics (25m)</option>
-                                <option value="20" data-tag="GSSW">GSSW - Software Install (20m)</option>
+                                <option value="12" data-tag="GSSW">GSSW - Software Install (12m)</option>
                                 <option value="20" data-tag="GSPW">GSPW - Password Reset (20m)</option>
                                 <option value="18" data-tag="GSHW">GSHW - Hardware Install (18m)</option>
                                 <option value="12" data-tag="GSSWR">GSSWR - Software Repair (12m)</option>
@@ -86,7 +86,7 @@
                                 <option value="49" data-tag="GSOSR">GSOSR - Operating System Repair (49m)</option>
                                 <option value="49" data-tag="GSIR">GSIR - iPhone Repair (49m)</option>
                                 <option value="25" data-tag="GSDI">GSDI - Diagnostics (25m)</option>
-                                <option value="20" data-tag="GSSW">GSSW - Software Install (20m)</option>
+                                <option value="12" data-tag="GSSW">GSSW - Software Install (12m)</option>
                                 <option value="20" data-tag="GSPW">GSPW - Password Reset (20m)</option>
                                 <option value="18" data-tag="GSHW">GSHW - Hardware Install (18m)</option>
                                 <option value="12" data-tag="GSSWR">GSSWR - Software Repair (12m)</option>
@@ -101,7 +101,7 @@
                                 <option value="49" data-tag="GSOSR">GSOSR - Operating System Repair (49m)</option>
                                 <option value="49" data-tag="GSIR">GSIR - iPhone Repair (49m)</option>
                                 <option value="25" data-tag="GSDI">GSDI - Diagnostics (25m)</option>
-                                <option value="20" data-tag="GSSW">GSSW - Software Install (20m)</option>
+                                <option value="12" data-tag="GSSW">GSSW - Software Install (12m)</option>
                                 <option value="20" data-tag="GSPW">GSPW - Password Reset (20m)</option>
                                 <option value="18" data-tag="GSHW">GSHW - Hardware Install (18m)</option>
                                 <option value="12" data-tag="GSSWR">GSSWR - Software Repair (12m)</option>
@@ -114,7 +114,7 @@
                                 <option value="49" data-tag="GSOSR">GSOSR - Operating System Repair (49m)</option>
                                 <option value="49" data-tag="GSIR">GSIR - iPhone Repair (49m)</option>
                                 <option value="25" data-tag="GSDI">GSDI - Diagnostics (25m)</option>
-                                <option value="20" data-tag="GSSW">GSSW - Software Install (20m)</option>
+                                <option value="12" data-tag="GSSW">GSSW - Software Install (12m)</option>
                                 <option value="20" data-tag="GSPW">GSPW - Password Reset (20m)</option>
                                 <option value="18" data-tag="GSHW">GSHW - Hardware Install (18m)</option>
                                 <option value="12" data-tag="GSSWR">GSSWR - Software Repair (12m)</option>
@@ -140,7 +140,6 @@
 
             <!-- CA INPUTS -->
             <div id="caInputsWrapper" style="display: none;">
-                
                 <div class="input-group">
                     <label for="caActionSelect" class="input-label">What are you doing?</label>
                     <select id="caActionSelect" autocomplete="off">
@@ -148,14 +147,12 @@
                         <option value="CA_PROGRESS">2. Log Tags & Memberships</option>
                     </select>
                 </div>
-
                 <div id="caGoalInputsWrapper">
                     <div class="input-group">
                         <label for="caHoursInput" class="input-label">Scheduled Hours</label>
                         <input type="text" inputmode="decimal" id="caHoursInput" placeholder="e.g., 32" autocomplete="off">
                     </div>
                 </div>
-
                 <div id="caProgressInputsWrapper" style="display: none;">
                     <div class="wo-calc-container">
                         <div class="input-group" style="width: 100%;">
@@ -188,7 +185,7 @@
             <p id="resultOutput" class="result-output" style="margin-top:15px; font-style:italic; color:var(--label); font-size:14px;">Ready to sync...</p>
         </div>
 
-        <!-- CHEAT SHEET SIDE PANEL (Updated with Inline Subscript fallback) -->
+        <!-- CHEAT SHEET SIDE PANEL -->
         <div id="cheatsheetContainer" class="cheatsheet-container" style="display: none;">
             <h3 style="margin-top:0; color:var(--accent); border-bottom:2px solid var(--accent); padding-bottom:10px; text-align:center;">Service Grid</h3>
             <div class="cheatsheet-grid">
@@ -197,7 +194,7 @@
                 <span class="cs-tag">GSOSR <span class="cs-sub">(Operating System Repair)</span></span> <span class="cs-min">49m</span>
                 <span class="cs-tag">GSIR <span class="cs-sub">(iPhone Repair)</span></span> <span class="cs-min">49m</span>
                 <span class="cs-tag">GSDI <span class="cs-sub">(Diagnostics)</span></span> <span class="cs-min">25m</span>
-                <span class="cs-tag">GSSW <span class="cs-sub">(Software Install)</span></span> <span class="cs-min">20m</span>
+                <span class="cs-tag">GSSW <span class="cs-sub">(Software Install)</span></span> <span class="cs-min">12m</span>
                 <span class="cs-tag">GSPW <span class="cs-sub">(Password Reset)</span></span> <span class="cs-min">20m</span>
                 <span class="cs-tag">GSHW <span class="cs-sub">(Hardware Install)</span></span> <span class="cs-min">18m</span>
                 <span class="cs-tag">GSSWR <span class="cs-sub">(Software Repair)</span></span> <span class="cs-min">12m</span>
@@ -227,37 +224,25 @@
     <div id="adminPanel" class="admin-panel" style="display: none;">
         <span class="close-admin-btn" id="closeAdminBtn">✖</span>
         <h3 style="margin-top:0; color:#c62828; margin-bottom:20px;">🛡️ Precinct Admin Override</h3>
-        
         <div class="admin-edit-group">
-            <select id="adminAgentSelect">
-                <!-- Populated dynamically by script.js -->
-            </select>
-            
+            <select id="adminAgentSelect"></select>
             <select id="adminActionSelect">
                 <option value="ARA_OVERRIDE">ARA Target/Progress (Override)</option>
                 <option value="CA_OVERRIDE">CA Target/Progress (Override)</option>
                 <option value="REMOVE_AGENT">Remove Agent from Week</option>
             </select>
         </div>
-
-        <!-- ARA Admin Inputs -->
         <div id="adminAraInputs" class="admin-edit-group" style="width: 100%; gap: 5px;">
             <input type="text" id="adminAraTarget" placeholder="Target Mins" style="width: 50%;">
             <input type="text" id="adminAraProgress" placeholder="Progress Mins" style="width: 50%;">
         </div>
-
-        <!-- CA Admin Inputs -->
         <div id="adminCaInputs" class="admin-edit-group" style="display: none; width: 100%; gap: 5px;">
             <input type="text" id="adminCaHours" placeholder="Hours" style="width: 33%;">
             <input type="text" id="adminCaTags" placeholder="Tags" style="width: 33%;">
             <input type="text" id="adminCaMbbt" placeholder="MBBT" style="width: 33%;">
         </div>
-
         <button id="adminOverrideBtn" class="admin-action-btn" style="width: 100%; margin-top: 10px;">Force Update</button>
-
         <hr class="admin-divider">
-        
-        <!-- AUDIT LOG HEADER & FILTER -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <h4 style="margin:0; color:var(--text);">Audit Log</h4>
             <select id="adminAuditFilter" style="width:auto; padding:6px; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:4px; font-size:13px; font-weight:bold; outline:none;">
@@ -268,7 +253,6 @@
                 <option value="GOAL">Goals & Targets Only</option>
             </select>
         </div>
-
         <div class="audit-log-container">
             <table class="audit-table">
                 <thead><tr><th>Agent</th><th>WO/LPN #</th><th>Services/Type</th><th>Min</th><th>Date & Time</th></tr></thead>
@@ -306,9 +290,7 @@
 
     <!-- TOAST NOTIFICATION -->
     <div id="toast" class="toast">Data Logged!</div>
-
     <div class="footer-note" style="text-align:center; margin-bottom:30px;">Loading...</div>
-
     <script src="script.js"></script>
 </body>
 </html>
