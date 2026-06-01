@@ -1,4 +1,4 @@
-const APP_VERSION = "6.12";
+const APP_VERSION = "6.13";
 
 // HARDCODED SUPABASE CONNECTION
 const _supabase = supabase.createClient(
@@ -11,14 +11,12 @@ const incompatibilities = {
     'GSOI': ['GSOSR', 'GSWUR'],
     'GSOSR': ['GSOI', 'GSWUR'],
     'GSDI': ['GSWUR'],
-    'GSSW': ['GSSWR'],
-    'GSSWR': ['GSSW'],
     'GSWUR': ['GSOI', 'GSOSR', 'GSDI']
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    console.log("U.GS.U.S. System v6.12 Initialized.");
+    console.log("U.GS.U.S. System v6.13 Initialized.");
 
     let currentPrecinctStats = { ara: {}, ca: {} };
     window.precinctLogs = []; 
@@ -564,8 +562,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('caTagsInput').value = '';
                 document.getElementById('caMbbtInput').value = '';
             } else if (!isCAMode) {
-                if (document.getElementById('actionSelect').value === 'PROGRESS') document.getElementById('woInput').value = '';
-                if (document.getElementById('actionSelect').value === 'OPEN_BOX') document.getElementById('lpnInput').value = '';
+                if (document.getElementById('actionSelect').value === 'PROGRESS') {
+                    document.getElementById('woInput').value = '';
+                    serviceSelects.forEach(s => s.selectedIndex = 0);
+                    updateCalc();
+                }
+                if (document.getElementById('actionSelect').value === 'OPEN_BOX') {
+                    document.getElementById('lpnInput').value = '';
+                }
             }
 
             if (isCAMode) {
