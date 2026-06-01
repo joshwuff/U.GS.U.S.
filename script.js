@@ -1,25 +1,24 @@
-const APP_VERSION = "6.11";
+const APP_VERSION = "6.12";
 
-// --- REPLACE THESE WITH YOUR ACTUAL SUPABASE CREDENTIALS ---
+// HARDCODED SUPABASE CONNECTION
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
     'sb_publishable_3WRcMc4zjv-N-9oZry-SbA_MmRRKv1b'
 );
 
-// --- FULL GEEK SQUAD SOP INCOMPATIBILITY MAP ---
+// --- CALIBRATED SOP COMPLIANT INCOMPATIBILITY ENGINE ---
 const incompatibilities = {
-    'GSDB': ['GSOSR', 'GSOI', 'GSWUR'],
+    'GSOI': ['GSOSR', 'GSWUR'],
+    'GSOSR': ['GSOI', 'GSWUR'],
     'GSDI': ['GSWUR'],
-    'GSOI': ['GSOSR', 'GSWUR', 'GSDB'],
-    'GSOSR': ['GSOI', 'GSWUR', 'GSDB'],
     'GSSW': ['GSSWR'],
     'GSSWR': ['GSSW'],
-    'GSWUR': ['GSOI', 'GSOSR', 'GSDI', 'GSDB']
+    'GSWUR': ['GSOI', 'GSOSR', 'GSDI']
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    console.log("U.GS.U.S. System v6.11 Loaded Successfully");
+    console.log("U.GS.U.S. System v6.12 Initialized.");
 
     let currentPrecinctStats = { ara: {}, ca: {} };
     window.precinctLogs = []; 
@@ -582,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- 5. ADMIN LOGIC (5-Click Easter Egg) ---
+    // --- 5. ADMIN LOGIC ---
     let logoClicks = 0;
     let logoTimer;
     document.getElementById('secretLogo').onclick = () => {
