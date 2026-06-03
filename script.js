@@ -1,6 +1,6 @@
-const APP_VERSION = "6.13";
+const APP_VERSION = "6.14";
 
-// HARDCODED SUPABASE CONNECTION
+// --- REPLACE THESE WITH YOUR ACTUAL SUPABASE CREDENTIALS ---
 const _supabase = supabase.createClient(
     'https://yxeozqztofvpyadxveyr.supabase.co',
     'sb_publishable_3WRcMc4zjv-N-9oZry-SbA_MmRRKv1b'
@@ -11,12 +11,13 @@ const incompatibilities = {
     'GSOI': ['GSOSR', 'GSWUR'],
     'GSOSR': ['GSOI', 'GSWUR'],
     'GSDI': ['GSWUR'],
+    'GSSW/GSSWR': [], 
     'GSWUR': ['GSOI', 'GSOSR', 'GSDI']
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    console.log("U.GS.U.S. System v6.13 Initialized.");
+    console.log("U.GS.U.S. System v6.14 Initialized.");
 
     let currentPrecinctStats = { ara: {}, ca: {} };
     window.precinctLogs = []; 
@@ -269,7 +270,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const targetTag = opt.dataset.tag;
                 if (targetTag === "NONE") return;
 
-                const isSelectedElsewhere = selectedTags.includes(targetTag) && currentSelection !== targetTag;
+                // --- NEW EXCEPTION FOR GSHW ---
+                // Prevents duplicates UNLESS the tag is GSHW (Hardware Install)
+                const isSelectedElsewhere = selectedTags.includes(targetTag) && currentSelection !== targetTag && targetTag !== "GSHW";
+                
                 let isConflicting = false;
                 selectedTags.forEach(activeTag => {
                     if (activeTag !== currentSelection) {
